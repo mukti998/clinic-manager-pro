@@ -1,17 +1,18 @@
 import { motion } from "framer-motion";
 import {
-  Heart,
-  Shield,
-  Users,
   Activity,
-  Calendar,
-  FileText,
   ArrowRight,
   CheckCircle2,
-  Stethoscope,
-  Pill,
-  FlaskConical,
-  ClipboardList,
+  Database,
+  FileText,
+  Layers,
+  Lock,
+  Monitor,
+  Route,
+  Server,
+  Shield,
+  Terminal,
+  Users,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -25,61 +26,61 @@ const stagger = {
   animate: { transition: { staggerChildren: 0.1 } },
 };
 
-const features = [
+const capabilities = [
   {
     icon: Users,
-    title: "Patient Records",
-    desc: "Complete digital patient profiles with medical history, vitals tracking, and secure data management.",
+    title: "Patient Profile Routing",
+    desc: "Transfer and receive patient records across departments with full audit trails and role-based access control.",
   },
   {
-    icon: Calendar,
-    title: "Appointments",
-    desc: "Smart scheduling with conflict detection, automated reminders, and doctor availability tracking.",
+    icon: Layers,
+    title: "Room Activity Tracking",
+    desc: "Monitor room status, occupancy, and activity in real time. Route orders and tasks to the right hands.",
   },
   {
-    icon: Stethoscope,
-    title: "Doctor Portal",
-    desc: "Dedicated workspace for physicians with patient dashboards, consultation notes, and care plans.",
+    icon: Database,
+    title: "Structured Data Layer",
+    desc: "All patient data, vitals, and clinical notes stored in a typed, queryable backend. No spreadsheets.",
   },
   {
-    icon: Pill,
-    title: "Pharmacy",
-    desc: "Inventory management, prescription tracking, and automated stock alerts for medications.",
+    icon: Route,
+    title: "Order Management",
+    desc: "Create, assign, and track orders across pharmacy, lab, and nursing. Every action is logged.",
   },
   {
-    icon: FlaskConical,
-    title: "Laboratory",
-    desc: "Lab order management, result tracking, and integration with diagnostic equipment.",
+    icon: Activity,
+    title: "Vitals & Observations",
+    desc: "Record and query patient vitals over time. Timestamped, attributed, immutable.",
   },
   {
     icon: FileText,
-    title: "Billing & Invoices",
-    desc: "Automated invoice generation, payment tracking, and insurance claim processing.",
+    title: "Invoice & Billing Pipeline",
+    desc: "Generate invoices from clinical events. Line-item breakdowns, tax calculation, payment status tracking.",
   },
 ];
 
-const stats = [
-  { value: "99.9%", label: "Uptime" },
-  { value: "256-bit", label: "Encryption" },
-  { value: "HIPAA", label: "Compliant" },
-  { value: "24/7", label: "Monitoring" },
+const specs = [
+  { icon: Lock, label: "Session-based auth" },
+  { icon: Shield, label: "Role enforcement" },
+  { icon: Server, label: "Convex backend" },
+  { icon: Terminal, label: "Typed throughout" },
 ];
 
 const steps = [
   {
     step: "01",
-    title: "Register Patients",
-    desc: "Quick onboarding with digital intake forms and insurance verification.",
+    title: "Authenticate",
+    desc: "Sign in with your team credentials. Sessions are managed server-side with Convex Auth.",
   },
   {
     step: "02",
-    title: "Schedule Care",
-    desc: "Book appointments, assign doctors, and coordinate treatment plans.",
+    title: "Select a workspace",
+    desc: "Choose the department or service line you are operating in. Permissions follow your role.",
   },
   {
     step: "03",
-    title: "Deliver Excellence",
-    desc: "Track outcomes, manage billing, and continuously improve patient care.",
+    title: "Execute",
+    desc: "Transfer patients, record vitals, manage orders. Every mutation is validated and logged.",
   },
 ];
 
@@ -88,7 +89,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-gradient-mesh bg-dots overflow-hidden">
-      {/* ─── Navbar ─────────────────────────────────────── */}
+      {/* ─── Nav ─────────────────────────────────────── */}
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -97,39 +98,38 @@ export default function Landing() {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
-              <Heart className="size-5 text-primary" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
+              <Monitor className="size-4.5 text-primary" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
-              Rayan<span className="text-primary">Health</span>
+            <span className="text-lg font-bold tracking-tight text-foreground font-mono">
+              rayan
             </span>
           </div>
           <div className="hidden items-center gap-8 md:flex">
-            <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              Features
+            <a href="#capabilities" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Capabilities
             </a>
-            <a href="#security" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              Security
+            <a href="#architecture" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Architecture
             </a>
             <a href="#workflow" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-              How It Works
+              Workflow
             </a>
           </div>
           <button
             onClick={() => navigate("/auth")}
-            className="glass glass-hover flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-primary transition-all"
+            className="glass glass-hover flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium text-primary transition-all"
           >
             Sign In
-            <ArrowRight className="size-4" />
+            <ArrowRight className="size-3.5" />
           </button>
         </div>
       </motion.nav>
 
-      {/* ─── Hero ───────────────────────────────────────── */}
+      {/* ─── Hero ───────────────────────────────────── */}
       <section className="relative mx-auto max-w-7xl px-6 pb-20 pt-20 md:pt-28">
-        {/* Decorative blobs */}
         <div className="pointer-events-none absolute left-1/2 top-0 -z-10 -translate-x-1/2">
-          <div className="size-[600px] rounded-full bg-primary/5 blur-3xl" />
+          <div className="size-[500px] rounded-full bg-primary/5 blur-[100px]" />
         </div>
 
         <motion.div
@@ -138,39 +138,39 @@ export default function Landing() {
           transition={{ duration: 0.7 }}
           className="mx-auto max-w-3xl text-center"
         >
-          <div className="glass mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary">
+          <div className="glass mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary font-mono">
             <Activity className="size-3.5" />
-            Hospital Management System
+            internal operations platform
           </div>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Modern Healthcare,{" "}
-            <span className="bg-gradient-to-r from-primary to-[oklch(0.6_0.12_170)] bg-clip-text text-transparent">
-              Simplified
+            Hospital operations,{" "}
+            <span className="text-primary">
+              controlled.
             </span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            RayanHealth connects doctors, patients, pharmacy, and laboratory
-            into one seamless platform. Manage records, schedule appointments,
-            track vitals, and streamline billing — all from a single dashboard.
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            Rayan is the internal platform for managing patient transfers, room
+            activity, orders, and clinical data. Built for the team that keeps
+            the hospital running — not for the waiting room.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <button
               onClick={() => navigate("/auth")}
-              className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
+              className="glass glass-strong flex items-center gap-2 rounded-lg bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
             >
-              Get Started Free
-              <ArrowRight className="size-4" />
+              Enter Rayan
+              <ArrowRight className="size-3.5" />
             </button>
             <button
               onClick={() => navigate("/auth")}
-              className="glass glass-hover flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-semibold text-foreground transition-all"
+              className="glass glass-hover flex items-center gap-2 rounded-lg px-7 py-3 text-sm font-medium text-muted-foreground transition-all"
             >
-              View Demo
+              View as guest
             </button>
           </div>
         </motion.div>
 
-        {/* Hero visual — glass card grid */}
+        {/* Stats strip */}
         <motion.div
           variants={stagger}
           initial="initial"
@@ -178,25 +178,27 @@ export default function Landing() {
           className="mx-auto mt-20 grid max-w-4xl grid-cols-3 gap-4"
         >
           {[
-            { icon: Users, label: "Patients", value: "12,847", color: "text-blue-500" },
-            { icon: Calendar, label: "Appointments", value: "3,291", color: "text-violet-500" },
-            { icon: Activity, label: "Consultations", value: "8,654", color: "text-teal-500" },
+            { label: "Patient records", value: "active", icon: Users },
+            { label: "Room tracking", value: "real-time", icon: Activity },
+            { label: "Data layer", value: "typed", icon: Database },
           ].map((item) => (
             <motion.div
               key={item.label}
               variants={fadeUp}
-              className="glass glass-strong glass-hover rounded-2xl p-6 text-center transition-all"
+              className="glass glass-strong glass-hover rounded-xl p-5 text-center transition-all"
             >
-              <item.icon className={`mx-auto size-8 ${item.color}`} />
-              <p className="mt-3 text-2xl font-bold text-foreground">{item.value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{item.label}</p>
+              <item.icon className="mx-auto size-6 text-primary" />
+              <p className="mt-2 font-mono text-sm font-bold text-primary">
+                {item.value}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{item.label}</p>
             </motion.div>
           ))}
         </motion.div>
       </section>
 
-      {/* ─── Features ──────────────────────────────────── */}
-      <section id="features" className="relative mx-auto max-w-7xl px-6 py-24">
+      {/* ─── Capabilities ───────────────────────────── */}
+      <section id="capabilities" className="relative mx-auto max-w-7xl px-6 py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -204,16 +206,16 @@ export default function Landing() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <div className="glass mb-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary">
-            <ClipboardList className="size-3.5" />
-            Platform Features
+          <div className="glass mb-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary font-mono">
+            <Layers className="size-3.5" />
+            system capabilities
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            Everything Your Hospital Needs
+            What Rayan Does
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            A unified system designed for modern healthcare facilities — from
-            small clinics to multi-department hospitals.
+          <p className="mx-auto mt-4 max-w-xl text-sm text-muted-foreground">
+            Every module is purpose-built for hospital operations. No generic
+            dashboards — just the workflows your team actually needs.
           </p>
         </motion.div>
 
@@ -222,18 +224,18 @@ export default function Landing() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
-          className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
-          {features.map((f) => (
+          {capabilities.map((f) => (
             <motion.div
               key={f.title}
               variants={fadeUp}
-              className="glass glass-strong glass-hover group rounded-2xl p-7 transition-all"
+              className="glass glass-strong glass-hover group rounded-xl p-6 transition-all"
             >
-              <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/15">
-                <f.icon className="size-6 text-primary" />
+              <div className="mb-3 flex size-10 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/15">
+                <f.icon className="size-5 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
+              <h3 className="text-base font-semibold text-foreground">{f.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {f.desc}
               </p>
@@ -242,8 +244,8 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* ─── Security ──────────────────────────────────── */}
-      <section id="security" className="relative mx-auto max-w-7xl px-6 py-24">
+      {/* ─── Architecture ───────────────────────────── */}
+      <section id="architecture" className="relative mx-auto max-w-7xl px-6 py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -251,12 +253,12 @@ export default function Landing() {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-          <div className="glass mb-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary">
-            <Shield className="size-3.5" />
-            Enterprise Security
+          <div className="glass mb-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-primary font-mono">
+            <Server className="size-3.5" />
+            technical stack
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            Built for Trust & Compliance
+            Built for Engineers
           </h2>
         </motion.div>
 
@@ -265,22 +267,24 @@ export default function Landing() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
-          className="mx-auto mt-14 grid max-w-4xl grid-cols-2 gap-5 md:grid-cols-4"
+          className="mx-auto mt-14 grid max-w-4xl grid-cols-2 gap-4 md:grid-cols-4"
         >
-          {stats.map((s) => (
+          {specs.map((s) => (
             <motion.div
               key={s.label}
               variants={fadeUp}
-              className="glass glass-strong rounded-2xl p-6 text-center"
+              className="glass glass-strong rounded-xl p-5 text-center"
             >
-              <p className="text-2xl font-bold text-primary">{s.value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
+              <s.icon className="mx-auto size-5 text-primary" />
+              <p className="mt-2 text-xs font-medium text-muted-foreground">
+                {s.label}
+              </p>
             </motion.div>
           ))}
         </motion.div>
       </section>
 
-      {/* ─── How It Works ──────────────────────────────── */}
+      {/* ─── Workflow ───────────────────────────────── */}
       <section id="workflow" className="relative mx-auto max-w-7xl px-6 py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -292,8 +296,8 @@ export default function Landing() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             How It Works
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Get your hospital management system running in three simple steps.
+          <p className="mx-auto mt-4 max-w-xl text-sm text-muted-foreground">
+            Three steps from login to a live operation.
           </p>
         </motion.div>
 
@@ -302,18 +306,18 @@ export default function Landing() {
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
-          className="mt-16 grid gap-8 md:grid-cols-3"
+          className="mt-16 grid gap-6 md:grid-cols-3"
         >
           {steps.map((s) => (
             <motion.div
               key={s.step}
               variants={fadeUp}
-              className="glass glass-strong glass-hover relative rounded-2xl p-8 transition-all"
+              className="glass glass-strong glass-hover relative rounded-xl p-7 transition-all"
             >
-              <span className="text-5xl font-extrabold text-primary/10">
+              <span className="font-mono text-4xl font-extrabold text-primary/15">
                 {s.step}
               </span>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">
+              <h3 className="mt-3 text-base font-semibold text-foreground">
                 {s.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -324,38 +328,38 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* ─── CTA ───────────────────────────────────────── */}
+      {/* ─── CTA ───────────────────────────────────── */}
       <section className="relative mx-auto max-w-7xl px-6 pb-24 pt-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="glass glass-strong relative overflow-hidden rounded-3xl p-12 text-center md:p-16"
+          className="glass glass-strong relative overflow-hidden rounded-2xl p-12 text-center md:p-16"
         >
-          <div className="pointer-events-none absolute -right-20 -top-20 size-64 rounded-full bg-primary/8 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 size-64 rounded-full bg-[oklch(0.6_0.12_170)]/8 blur-3xl" />
+          <div className="pointer-events-none absolute -right-20 -top-20 size-60 rounded-full bg-primary/8 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 size-60 rounded-full bg-[oklch(0.65_0.12_180)]/6 blur-3xl" />
           <h2 className="relative text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-            Ready to Transform Your Hospital?
+            Ready to Deploy
           </h2>
-          <p className="relative mx-auto mt-4 max-w-lg text-muted-foreground">
-            Join healthcare providers who trust RayanHealth to manage their
-            operations and deliver better patient outcomes.
+          <p className="relative mx-auto mt-4 max-w-lg text-sm text-muted-foreground">
+            Sign in with your team credentials to start managing patient
+            transfers, room activity, and orders.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <button
               onClick={() => navigate("/auth")}
-              className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
+              className="glass glass-strong flex items-center gap-2 rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
             >
-              Start Managing Patients
-              <ArrowRight className="size-4" />
+              Sign In to Rayan
+              <ArrowRight className="size-3.5" />
             </button>
           </div>
-          <div className="relative mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-            {["HIPAA Compliant", "End-to-End Encrypted", "Role-Based Access"].map(
+          <div className="relative mt-8 flex flex-wrap items-center justify-center gap-5 text-xs text-muted-foreground">
+            {["Role-Based Access", "Audit Logging", "Convex Backend", "Type-Safe"].map(
               (item) => (
                 <span key={item} className="flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4 text-primary" />
+                  <CheckCircle2 className="size-3.5 text-primary" />
                   {item}
                 </span>
               ),
@@ -364,17 +368,17 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* ─── Footer ────────────────────────────────────── */}
-      <footer className="glass border-t border-white/30">
+      {/* ─── Footer ────────────────────────────────── */}
+      <footer className="glass border-t border-white/5">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 sm:flex-row">
           <div className="flex items-center gap-2">
-            <Heart className="size-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">
-              RayanHealth
+            <Monitor className="size-4 text-primary" />
+            <span className="text-sm font-bold text-foreground font-mono">
+              rayan
             </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            © 2026 RayanHealth. Built for modern healthcare.
+            Internal tool. Not for public distribution.
           </p>
         </div>
       </footer>

@@ -11,16 +11,15 @@ beforeAll(() => {
 });
 
 describe("Glassmorphism theme CSS", () => {
-  it("contains the glass utility class", () => {
+  it("contains the glass utility class with dark translucent background", () => {
     expect(cssContent).toContain(".glass {");
     expect(cssContent).toContain("backdrop-filter: blur(16px)");
-    expect(cssContent).toContain("rgba(255, 255, 255, 0.6)");
+    expect(cssContent).toContain("rgba(255, 255, 255, 0.04)");
   });
 
   it("contains the glass-strong utility class", () => {
     expect(cssContent).toContain(".glass-strong {");
     expect(cssContent).toContain("backdrop-filter: blur(24px)");
-    expect(cssContent).toContain("rgba(255, 255, 255, 0.75)");
   });
 
   it("contains the glass-subtle utility class", () => {
@@ -32,9 +31,22 @@ describe("Glassmorphism theme CSS", () => {
     expect(cssContent).toContain(".glass-hover:hover {");
   });
 
+  it("uses a dark background color (oklch with low lightness)", () => {
+    // Background should be dark: oklch with L around 0.13
+    expect(cssContent).toMatch(/--background:\s*oklch\(0\.1[0-9]/);
+  });
+
+  it("uses a cool blue primary color", () => {
+    expect(cssContent).toMatch(/--primary:\s*oklch\(0\.72\s+0\.14\s+250\)/);
+  });
+
+  it("uses translucent dark card background", () => {
+    expect(cssContent).toMatch(/--card:\s*oklch\(0\.17\s+0\.018\s+260\s*\/\s*70%\)/);
+  });
+
   it("contains the background gradient mesh", () => {
     expect(cssContent).toContain(".bg-gradient-mesh {");
-    expect(cssContent).toContain("radial-gradient(ellipse at 20% 20%");
+    expect(cssContent).toContain("radial-gradient(ellipse at 20% 15%");
   });
 
   it("contains the dot pattern background", () => {
@@ -42,21 +54,16 @@ describe("Glassmorphism theme CSS", () => {
     expect(cssContent).toContain("radial-gradient");
   });
 
-  it("uses cool-toned primary color in oklch", () => {
-    // Primary should be a blue-ish cool tone
-    expect(cssContent).toMatch(/--primary:\s*oklch\([\d.]+\s+[\d.]+\s+250\)/);
-  });
-
-  it("uses light translucent card background", () => {
-    expect(cssContent).toMatch(/--card:\s*oklch\(1 0 0 \/ 65%\)/);
-  });
-
-  it("includes inset highlight for glass depth", () => {
-    expect(cssContent).toContain("inset 0 1px 0 rgba(255, 255, 255, 0.6)");
-  });
-
   it("preserves required Tailwind directives", () => {
     expect(cssContent).toContain('@import "tailwindcss"');
     expect(cssContent).toContain('@import "tw-animate-css"');
+  });
+
+  it("has subtle inset highlights for glass depth", () => {
+    expect(cssContent).toContain("inset 0 1px 0 rgba(255, 255, 255, 0.05)");
+  });
+
+  it("uses dark border color", () => {
+    expect(cssContent).toMatch(/--border:\s*oklch\(0\.28\s+0\.015\s+260\)/);
   });
 });

@@ -48,14 +48,14 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-mesh bg-dots">
       {/* ─── Sidebar ─────────────────────────────────── */}
-      <aside className="glass-strong flex w-64 flex-col border-r border-white/30">
+      <aside className="glass-strong flex w-64 flex-col border-r border-white/5">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5">
-          <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10">
-            <Heart className="size-5 text-primary" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
+            <Heart className="size-4.5 text-primary" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground">
-            Rayan<span className="text-primary">Health</span>
+          <span className="text-lg font-bold tracking-tight text-foreground font-mono">
+            rayan
           </span>
         </div>
 
@@ -81,7 +81,7 @@ export default function Dashboard() {
         </nav>
 
         {/* User / Sign Out */}
-        <div className="border-t border-white/30 p-4">
+        <div className="border-t border-white/5 p-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
               {user?.name?.[0]?.toUpperCase() || "U"}
@@ -90,8 +90,8 @@ export default function Dashboard() {
               <p className="text-sm font-medium text-foreground truncate">
                 {user?.name || "User"}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email || "Staff"}
+              <p className="text-xs text-muted-foreground truncate font-mono">
+                {user?.email || "staff"}
               </p>
             </div>
             <button
@@ -180,7 +180,7 @@ function StatsRow() {
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {cards.map((c) => (
-        <div key={c.label} className="glass glass-strong glass-hover rounded-2xl p-5 transition-all">
+        <div key={c.label} className="glass glass-strong glass-hover rounded-xl p-5 transition-all">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">{c.label}</p>
             <div className={`flex size-9 items-center justify-center rounded-xl ${c.bg}`}>
@@ -223,15 +223,15 @@ function PatientList({
         <div>
           <h1 className="text-2xl font-bold text-foreground">Patient Records</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage and view all patient information
+            View, transfer, and manage patient profiles
           </p>
         </div>
         <button
           onClick={onAddPatient}
-          className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25"
+          className="glass glass-strong flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="size-4" />
-          New Patient
+          New Profile
         </button>
       </div>
 
@@ -241,7 +241,7 @@ function PatientList({
       </div>
 
       {/* Search */}
-      <div className="glass mt-6 flex items-center gap-3 rounded-xl px-4 py-3">
+      <div className="glass mt-6 flex items-center gap-3 rounded-lg px-4 py-3">
         <Search className="size-4.5 text-muted-foreground" />
         <input
           type="text"
@@ -258,7 +258,7 @@ function PatientList({
       </div>
 
       {/* Table */}
-      <div className="glass glass-strong mt-4 overflow-hidden rounded-2xl">
+      <div className="glass glass-strong mt-4 overflow-hidden rounded-xl">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -381,10 +381,10 @@ function AddPatient({ onBack }: { onBack: () => void }) {
         insuranceProvider: form.insuranceProvider || undefined,
         insurancePolicyNumber: form.insurancePolicyNumber || undefined,
       });
-      toast.success("Patient registered successfully!");
+      toast.success("Patient profile created.");
       onBack();
     } catch {
-      toast.error("Failed to register patient. Please try again.");
+      toast.error("Failed to create patient profile.");
     } finally {
       setIsSubmitting(false);
     }
@@ -401,22 +401,21 @@ function AddPatient({ onBack }: { onBack: () => void }) {
       exit={{ opacity: 0, x: -20 }}
       className="mx-auto max-w-3xl px-6 py-8"
     >
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onBack}
-          className="glass glass-hover rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
-        >
-          ← Back
-        </button>
+      <div className="flex items-center gap-4">              <button
+              onClick={onBack}
+              className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
+            >
+              ← Back
+            </button>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Register New Patient</h1>
+          <h1 className="text-2xl font-bold text-foreground">New Patient Profile</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fill in the patient details below
+            Create a new patient record in the system
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="glass glass-strong mt-8 rounded-2xl p-8">
+      <form onSubmit={handleSubmit} className="glass glass-strong mt-8 rounded-xl p-8">
         {/* Personal Info */}
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-primary">
           Personal Information
@@ -604,7 +603,7 @@ function AddPatient({ onBack }: { onBack: () => void }) {
             className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25 disabled:opacity-60"
           >
             <UserPlus className="size-4" />
-            {isSubmitting ? "Registering..." : "Register Patient"}
+            {isSubmitting ? "Creating..." : "Create Profile"}
           </button>
           <button
             type="button"
@@ -672,7 +671,7 @@ function PatientDetail({
         height: vitalsForm.height ? Number(vitalsForm.height) : undefined,
         notes: vitalsForm.notes || undefined,
       });
-      toast.success("Vitals recorded successfully!");
+      toast.success("Vitals entry saved.");
       setShowVitalsForm(false);
       setVitalsForm({
         temperature: "", heartRate: "", bloodPressureSystolic: "",
@@ -680,14 +679,14 @@ function PatientDetail({
         weight: "", height: "", notes: "",
       });
     } catch {
-      toast.error("Failed to record vitals.");
+      toast.error("Failed to save vitals entry.");
     }
   };
 
   if (!patient) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading patient data...</p>
+        <p className="text-sm text-muted-foreground font-mono">Loading profile...</p>
       </div>
     );
   }
@@ -709,7 +708,7 @@ function PatientDetail({
             ← Back
           </button>
           <div className="flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-lg font-bold text-primary">
+            <div className="flex size-12 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary">
               {patient.firstName[0]}{patient.lastName[0]}
             </div>
             <div>
@@ -738,7 +737,7 @@ function PatientDetail({
             <button
               onClick={async () => {
                 await deactivate({ patientId });
-                toast.success("Patient deactivated.");
+                toast.success("Patient profile deactivated.");
                 onBack();
               }}
               className="glass glass-hover rounded-xl px-4 py-2 text-sm font-medium text-red-500 transition-all hover:bg-red-500/10"
@@ -749,7 +748,7 @@ function PatientDetail({
             <button
               onClick={async () => {
                 await reactivate({ patientId });
-                toast.success("Patient reactivated.");
+                toast.success("Patient profile reactivated.");
               }}
               className="glass glass-hover rounded-xl px-4 py-2 text-sm font-medium text-emerald-500 transition-all hover:bg-emerald-500/10"
             >
@@ -848,7 +847,7 @@ function PatientDetail({
         <h2 className="text-lg font-bold text-foreground">Vitals History</h2>
         <button
           onClick={() => setShowVitalsForm(!showVitalsForm)}
-          className="glass glass-hover flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-primary transition-all"
+          className="glass glass-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary transition-all"
         >
           <Activity className="size-4" />
           {showVitalsForm ? "Cancel" : "Record Vitals"}
@@ -866,7 +865,7 @@ function PatientDetail({
           >
             <form
               onSubmit={handleAddVitals}
-              className="glass glass-strong mt-4 rounded-2xl p-6"
+              className="glass glass-strong mt-4 rounded-xl p-6"
             >
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
@@ -996,7 +995,7 @@ function PatientDetail({
       </AnimatePresence>
 
       {/* Vitals Table */}
-      <div className="glass glass-strong mt-4 overflow-hidden rounded-2xl">
+      <div className="glass glass-strong mt-4 overflow-hidden rounded-xl">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

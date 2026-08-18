@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/input-otp";
 
 import { useAuth } from "@/hooks/use-auth";
-import { Heart } from "lucide-react";
+import { Monitor } from "lucide-react";
 import { ArrowRight, Loader2, Mail, UserX } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -114,20 +114,20 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       {/* Auth Content */}
       <div className="flex-1 flex items-center justify-center">
         <div className="flex items-center justify-center h-full flex-col">
-          <Card className="min-w-[380px] pb-0 glass glass-strong rounded-2xl border-white/30 shadow-lg shadow-primary/5">
+          <Card className="min-w-[380px] pb-0 glass glass-strong rounded-xl border-white/5 shadow-lg shadow-black/30">
             {step === "signIn" ? (
               <>
                 <CardHeader className="text-center">
                   <div className="flex justify-center">
-                    <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 mb-4 mt-2">
-                      <Heart className="size-7 text-primary" />
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-primary/15 mb-4 mt-2">
+                      <Monitor className="size-6 text-primary" />
                     </div>
                   </div>
-                  <CardTitle className="text-xl font-bold text-foreground">
-                    Welcome to RayanHealth
+                  <CardTitle className="text-lg font-bold text-foreground font-mono">
+                    rayan
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    Sign in to access the hospital dashboard
+                  <CardDescription className="text-muted-foreground text-sm">
+                    Sign in to access the operations dashboard
                   </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleEmailSubmit}>
@@ -139,7 +139,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                           name="email"
                           placeholder="name@example.com"
                           type="email"
-                          className="pl-9 glass rounded-xl border-white/40 bg-white/50 focus:ring-2 focus:ring-primary/10"
+                          className="pl-9 glass rounded-lg border-white/5 bg-white/5 focus:ring-2 focus:ring-primary/15"
                           disabled={isLoading}
                           required
                         />
@@ -149,7 +149,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                         variant="outline"
                         size="icon"
                         disabled={isLoading}
-                        className="glass glass-hover rounded-xl"
+                        className="glass glass-hover rounded-lg"
                       >
                         {isLoading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -159,13 +159,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       </Button>
                     </div>
                     {error && (
-                      <p className="mt-2 text-sm text-red-500">{error}</p>
+                      <p className="mt-2 text-sm text-red-400">{error}</p>
                     )}
 
                     <div className="mt-4">
                       <div className="relative">
                         <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t border-white/40" />
+                          <span className="w-full border-t border-white/5" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
                           <span className="px-2 text-muted-foreground bg-transparent">
@@ -177,7 +177,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       <Button
                         type="button"
                         variant="outline"
-                        className="w-full mt-4 glass glass-hover rounded-xl"
+                        className="w-full mt-4 glass glass-hover rounded-lg"
                         onClick={handleGuestLogin}
                         disabled={isLoading}
                       >
@@ -192,15 +192,15 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               <>
                 <CardHeader className="text-center mt-4">
                   <div className="flex justify-center">
-                    <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 mb-4 mt-2">
-                      <Mail className="size-7 text-primary" />
+                    <div className="flex size-12 items-center justify-center rounded-xl bg-primary/15 mb-4 mt-2">
+                      <Mail className="size-6 text-primary" />
                     </div>
                   </div>
-                  <CardTitle className="text-xl font-bold text-foreground">
+                  <CardTitle className="text-lg font-bold text-foreground">
                     Check your email
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    We've sent a verification code to {step.email}
+                  <CardDescription className="text-muted-foreground text-sm">
+                    Verification code sent to {step.email}
                   </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleOtpSubmit}>
@@ -225,13 +225,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       >
                         <InputOTPGroup>
                           {Array.from({ length: 6 }).map((_, index) => (
-                            <InputOTPSlot key={index} index={index} className="glass rounded-xl" />
+                            <InputOTPSlot key={index} index={index} className="glass rounded-lg" />
                           ))}
                         </InputOTPGroup>
                       </InputOTP>
                     </div>
                     {error && (
-                      <p className="mt-2 text-sm text-red-500 text-center">
+                      <p className="mt-2 text-sm text-red-400 text-center">
                         {error}
                       </p>
                     )}
@@ -249,7 +249,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   <CardFooter className="flex-col gap-2">
                     <Button
                       type="submit"
-                      className="w-full glass glass-strong bg-primary text-primary-foreground rounded-xl shadow-md shadow-primary/15"
+                      className="w-full glass glass-strong bg-primary text-primary-foreground rounded-lg shadow-md shadow-primary/15"
                       disabled={isLoading || otp.length !== 6}
                     >
                       {isLoading ? (
@@ -278,16 +278,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               </>
             )}
 
-            <div className="py-4 px-6 text-xs text-center text-muted-foreground glass-subtle border-t border-white/30 rounded-b-2xl">
-              Secured by{" "}
-              <a
-                href="https://freebuff.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-primary transition-colors font-medium"
-              >
-                freebuff.com
-              </a>
+            <div className="py-3 px-6 text-xs text-center text-muted-foreground glass-subtle border-t border-white/5 rounded-b-xl">
+              Internal use only
             </div>
           </Card>
         </div>

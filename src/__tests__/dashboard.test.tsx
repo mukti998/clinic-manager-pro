@@ -62,10 +62,9 @@ vi.mock("sonner", () => ({
 import Dashboard from "@/pages/Dashboard";
 
 describe("Dashboard component", () => {
-  it("renders the sidebar with RayanHealth branding", () => {
+  it("renders the sidebar with Rayan branding", () => {
     render(<Dashboard />);
-    expect(screen.getByText("Rayan")).toBeInTheDocument();
-    expect(screen.getByText("Health")).toBeInTheDocument();
+    expect(screen.getByText("rayan")).toBeInTheDocument();
   });
 
   it("displays the sidebar navigation items", () => {
@@ -86,9 +85,9 @@ describe("Dashboard component", () => {
     expect(screen.getByText("Patient Records")).toBeInTheDocument();
   });
 
-  it("has a New Patient button", () => {
+  it("has a New Profile button", () => {
     render(<Dashboard />);
-    expect(screen.getByText("New Patient")).toBeInTheDocument();
+    expect(screen.getByText("New Profile")).toBeInTheDocument();
   });
 
   it("has a search input", () => {
