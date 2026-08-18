@@ -42,7 +42,6 @@ export type Department = Infer<typeof departmentValidator>;
 
 // ─── Blood Type ─────────────────────────────────────────
 export const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
-
 type BloodLiteral = (typeof BLOOD_TYPES)[number];
 export const bloodTypeValidator = v.union(
   ...(BLOOD_TYPES.map((bt) => v.literal(bt)) as [Validator<BloodLiteral>, ...Validator<BloodLiteral>[]]),
@@ -51,12 +50,18 @@ export type BloodType = Infer<typeof bloodTypeValidator>;
 
 // ─── Gender ─────────────────────────────────────────────
 export const GENDERS = ["male", "female", "other"] as const;
-
 type GenderLiteral = (typeof GENDERS)[number];
 export const genderValidator = v.union(
   ...(GENDERS.map((g) => v.literal(g)) as [Validator<GenderLiteral>, ...Validator<GenderLiteral>[]]),
 );
 export type Gender = Infer<typeof genderValidator>;
+
+// ─── Visit Status ───────────────────────────────────────
+export const VISIT_STATUSES = ["waiting", "with_doctor", "lab_pending", "pharmacy_pending", "completed", "discharged"] as const;
+type VisitStatusLiteral = (typeof VISIT_STATUSES)[number];
+export const visitStatusValidator = v.union(
+  ...(VISIT_STATUSES.map((s) => v.literal(s)) as [Validator<VisitStatusLiteral>, ...Validator<VisitStatusLiteral>[]]),
+);
 
 // ─── Order Types & Status ───────────────────────────────
 export const ORDER_TYPES = ["lab_order", "pharmacy_order", "nursing_order", "radiology_order", "general"] as const;
@@ -71,9 +76,29 @@ export const orderStatusValidator = v.union(
   ...(ORDER_STATUSES.map((s) => v.literal(s)) as [Validator<OrderStatusLiteral>, ...Validator<OrderStatusLiteral>[]]),
 );
 
+// ─── Payment Methods ────────────────────────────────────
+export const PAYMENT_METHODS = ["cash", "card", "insurance", "digital"] as const;
+type PaymentMethodLiteral = (typeof PAYMENT_METHODS)[number];
+export const paymentMethodValidator = v.union(
+  ...(PAYMENT_METHODS.map((m) => v.literal(m)) as [Validator<PaymentMethodLiteral>, ...Validator<PaymentMethodLiteral>[]]),
+);
+
+// ─── Prescription Status ────────────────────────────────
+export const RX_STATUSES = ["pending", "approved", "dispensed", "rejected"] as const;
+type RxStatusLiteral = (typeof RX_STATUSES)[number];
+export const rxStatusValidator = v.union(
+  ...(RX_STATUSES.map((s) => v.literal(s)) as [Validator<RxStatusLiteral>, ...Validator<RxStatusLiteral>[]]),
+);
+
+// ─── Lab Test Status ────────────────────────────────────
+export const LAB_STATUSES = ["ordered", "sample_collected", "in_progress", "completed", "rejected"] as const;
+type LabStatusLiteral = (typeof LAB_STATUSES)[number];
+export const labStatusValidator = v.union(
+  ...(LAB_STATUSES.map((s) => v.literal(s)) as [Validator<LabStatusLiteral>, ...Validator<LabStatusLiteral>[]]),
+);
+
 const schema = defineSchema(
   {
-    // default auth tables — do not remove or modify
     ...authTables,
 
     // ─── Users (extended from auth) ─────────────────────
@@ -92,8 +117,8 @@ const schema = defineSchema(
 
     // ─── Patients ───────────────────────────────────────
     patients: defineTable({
-      medicalId: v.string(),        // e.g. RAYAN-PAT-00001
-      cardNumber: v.string(),       // e.g. RAYAN-CARD-00001
+      medicalId: v.string(),
+      cardNumber: v.string(),
       firstName: v.string(),
       lastName: v.string(),
       dateOfBirth: v.string(),
@@ -117,12 +142,34 @@ const schema = defineSchema(
       .index("by_medicalId", ["medicalId"])
       .index("by_cardNumber", ["cardNumber"])
       .index("by_lastName", ["lastName"])
-      .index("by_isActive", ["isActive"])
-      .index("by_currentDepartment", ["currentDepartment"]),
+      .index("by_isActive", ["isActive"]),
+
+    // ─── Visits (token + queue + consultation tracking) ─
+    visits: defineTable({
+      visitNumber: v.string(),           // e.g. RAYAN-VIS-00001
+      patientId: v.id("patients"),
+      doctorId: v.id("users"),
+      tokenNumber: v.number(),           // sequential per doctor per day
+      status: visitStatusValidator,
+      consultationFee: v.number(),
+      isPaid: v.boolean(),
+      reason: v.optional(v.string()),
+      diagnosis: v.optional(v.string()),
+      clinicalNotes: v.optional(v.string()),
+      vitalsId: v.optional(v.id("vitals")),
+      followUpDate: v.optional(v.string()),
+      createdAt: v.number(),
+      completedAt: v.optional(v.number()),
+    })
+      .index("by_doctorId", ["doctorId"])
+      .index("by_patientId", ["patientId"])
+      .index("by_status", ["status"])
+      .index("by_tokenNumber", ["tokenNumber"]),
 
     // ─── Vitals ─────────────────────────────────────────
     vitals: defineTable({
       patientId: v.id("patients"),
+      visitId: v.optional(v.id("visits")),
       recordedBy: v.optional(v.id("users")),
       recordedAt: v.number(),
       temperature: v.optional(v.number()),
@@ -137,12 +184,11 @@ const schema = defineSchema(
     }).index("by_patientId", ["patientId"])
       .index("by_recordedAt", ["recordedAt"]),
 
-    // ─── Orders ─────────────────────────────────────────
-    // Orders route between departments: doctor → lab, doctor → pharmacy,
-    // lab → pharmacy, pharmacy → nursing, etc.
+    // ─── Orders (inter-department routing) ──────────────
     orders: defineTable({
-      orderNumber: v.string(),           // e.g. RAYAN-ORD-00001
+      orderNumber: v.string(),
       patientId: v.id("patients"),
+      visitId: v.optional(v.id("visits")),
       type: orderTypeValidator,
       fromDepartment: departmentValidator,
       toDepartment: departmentValidator,
@@ -163,13 +209,91 @@ const schema = defineSchema(
       .index("by_patientId", ["patientId"])
       .index("by_toDepartment", ["toDepartment"])
       .index("by_status", ["status"])
-      .index("by_orderNumber", ["orderNumber"])
-      .index("by_createdBy", ["createdBy"]),
+      .index("by_orderNumber", ["orderNumber"]),
+
+    // ─── Prescriptions (doctor → pharmacy) ──────────────
+    prescriptions: defineTable({
+      prescriptionNumber: v.string(),    // e.g. RAYAN-RX-00001
+      patientId: v.id("patients"),
+      visitId: v.id("visits"),
+      doctorId: v.id("users"),
+      status: rxStatusValidator,
+      medications: v.array(v.object({
+        name: v.string(),
+        dosage: v.string(),
+        frequency: v.string(),
+        duration: v.optional(v.string()),
+        notes: v.optional(v.string()),
+      })),
+      pharmacistNotes: v.optional(v.string()),
+      createdAt: v.number(),
+      dispensedAt: v.optional(v.number()),
+    })
+      .index("by_patientId", ["patientId"])
+      .index("by_status", ["status"])
+      .index("by_visitId", ["visitId"]),
+
+    // ─── Lab Results (doctor → lab) ─────────────────────
+    labResults: defineTable({
+      labOrderNumber: v.string(),
+      patientId: v.id("patients"),
+      visitId: v.id("visits"),
+      doctorId: v.id("users"),
+      status: labStatusValidator,
+      tests: v.array(v.object({
+        testName: v.string(),
+        result: v.optional(v.string()),
+        unit: v.optional(v.string()),
+        referenceRange: v.optional(v.string()),
+        notes: v.optional(v.string()),
+      })),
+      clinicalNotes: v.optional(v.string()),
+      labTechNotes: v.optional(v.string()),
+      createdAt: v.number(),
+      sampleCollectedAt: v.optional(v.number()),
+      completedAt: v.optional(v.number()),
+    })
+      .index("by_patientId", ["patientId"])
+      .index("by_status", ["status"])
+      .index("by_visitId", ["visitId"]),
+
+    // ─── Payments ───────────────────────────────────────
+    payments: defineTable({
+      paymentNumber: v.string(),
+      patientId: v.id("patients"),
+      visitId: v.optional(v.id("visits")),
+      amount: v.number(),
+      method: paymentMethodValidator,
+      description: v.string(),
+      processedBy: v.id("users"),
+      createdAt: v.number(),
+    })
+      .index("by_patientId", ["patientId"])
+      .index("by_visitId", ["visitId"]),
+
+    // ─── Invoices (aggregated bills for checkout) ───────
+    invoices: defineTable({
+      invoiceNumber: v.string(),
+      patientId: v.id("patients"),
+      visitId: v.id("visits"),
+      items: v.array(v.object({
+        description: v.string(),
+        amount: v.number(),
+        category: v.string(),
+      })),
+      subtotal: v.number(),
+      discount: v.optional(v.number()),
+      total: v.number(),
+      isPaid: v.boolean(),
+      createdAt: v.number(),
+    })
+      .index("by_patientId", ["patientId"])
+      .index("by_visitId", ["visitId"]),
 
     // ─── Order History (audit trail) ────────────────────
     orderHistory: defineTable({
       orderId: v.id("orders"),
-      action: v.string(),       // "created" | "routed" | "status_change" | "note_added"
+      action: v.string(),
       fromDepartment: v.optional(departmentValidator),
       toDepartment: v.optional(departmentValidator),
       status: v.optional(orderStatusValidator),
@@ -178,7 +302,7 @@ const schema = defineSchema(
       timestamp: v.number(),
     }).index("by_orderId", ["orderId"]),
 
-    // ─── Staff (reference) ──────────────────────────────
+    // ─── Staff ──────────────────────────────────────────
     staff: defineTable({
       userId: v.optional(v.id("users")),
       staffId: v.string(),

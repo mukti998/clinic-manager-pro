@@ -11,7 +11,7 @@ vi.mock("convex/react", () => ({
 
 vi.mock("@/hooks/use-auth", () => ({
   useAuth: vi.fn(() => ({
-    user: { name: "Dr. Sarah Chen", email: "sarah@hospital.org", role: "doctor" },
+    user: { name: "Dr. Sarah Chen", email: "sarah@hospital.org", role: "doctor", _id: "user123" },
     signOut: vi.fn(),
     isLoading: false,
     isAuthenticated: true,
@@ -45,6 +45,45 @@ vi.mock("@/convex/_generated/api", () => ({
     orders: {
       create: "orders.create",
       listByDepartment: "orders.listByDepartment",
+    },
+    visits: {
+      create: "visits.create",
+      markPaid: "visits.markPaid",
+      updateStatus: "visits.updateStatus",
+      getDoctorQueue: "visits.getDoctorQueue",
+      getWaitingQueue: "visits.getWaitingQueue",
+      getActiveVisits: "visits.getActiveVisits",
+      getTodayCount: "visits.getTodayCount",
+      getTodayRevenue: "visits.getTodayRevenue",
+      getVisit: "visits.getVisit",
+    },
+    prescriptions: {
+      create: "prescriptions.create",
+      approve: "prescriptions.approve",
+      dispense: "prescriptions.dispense",
+      reject: "prescriptions.reject",
+      getPharmacyQueue: "prescriptions.getPharmacyQueue",
+    },
+    lab: {
+      create: "lab.create",
+      accept: "lab.accept",
+      collectSample: "lab.collectSample",
+      enterResults: "lab.enterResults",
+      reject: "lab.reject",
+      getLabQueue: "lab.getLabQueue",
+      getPendingCount: "lab.getPendingCount",
+    },
+    billing: {
+      processPayment: "billing.processPayment",
+      createInvoice: "billing.createInvoice",
+      markInvoicePaid: "billing.markInvoicePaid",
+      getTodayRevenue: "billing.getTodayRevenue",
+    },
+    staff: {
+      listByDepartment: "staff.listByDepartment",
+      listActive: "staff.listActive",
+      getCount: "staff.getCount",
+      getByRole: "staff.getByRole",
     },
   },
 }));
@@ -85,11 +124,11 @@ describe("Dashboard", () => {
     expect(screen.getByText("rayan")).toBeTruthy();
   });
 
-  it("renders navigation items", () => {
+  it("renders navigation items for doctor role", () => {
     render(<Dashboard />);
     expect(screen.getByText("Overview")).toBeTruthy();
+    expect(screen.getByText("My Queue")).toBeTruthy();
     expect(screen.getByText("Patients")).toBeTruthy();
-    expect(screen.getByText("Orders")).toBeTruthy();
   });
 
   it("displays user name from auth", () => {
@@ -102,19 +141,6 @@ describe("Dashboard", () => {
     expect(screen.getAllByText("doctor").length).toBeGreaterThan(0);
   });
 
-  it("shows quick route section for doctors", () => {
-    render(<Dashboard />);
-    expect(screen.getByText("Quick Route")).toBeTruthy();
-  });
-
-  it("renders quick route action cards for doctors", () => {
-    render(<Dashboard />);
-    expect(screen.getAllByText("Laboratory").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Pharmacy").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Radiology").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Nursing").length).toBeGreaterThan(0);
-  });
-
   it("shows greeting with user name", () => {
     render(<Dashboard />);
     expect(screen.getByText(/Sarah/)).toBeTruthy();
@@ -123,5 +149,16 @@ describe("Dashboard", () => {
   it("renders sign out button", () => {
     render(<Dashboard />);
     expect(screen.getByTitle("Sign out")).toBeTruthy();
+  });
+
+  it("shows send to department section for doctors", () => {
+    render(<Dashboard />);
+    expect(screen.getByText("Send to Department")).toBeTruthy();
+  });
+
+  it("shows lab and pharmacy quick route actions", () => {
+    render(<Dashboard />);
+    expect(screen.getAllByText("Laboratory").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pharmacy").length).toBeGreaterThan(0);
   });
 });

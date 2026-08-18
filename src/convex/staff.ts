@@ -32,3 +32,12 @@ export const getCount = query({
     return { total, doctors, nurses };
   },
 });
+
+// ─── List staff by role ─────────────────────────────────
+export const getByRole = query({
+  args: { role: v.string() },
+  handler: async (ctx, args) => {
+    const staff = await ctx.db.query("staff").collect();
+    return staff.filter((s) => s.role === args.role && s.isActive);
+  },
+});
