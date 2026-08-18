@@ -108,11 +108,13 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const allPatients = await ctx.db.query("patients").collect();
     const medicalId = `RAYAN-PAT-${String(allPatients.length + 1).padStart(5, "0")}`;
+    const cardNumber = `RAYAN-CARD-${String(allPatients.length + 1).padStart(5, "0")}`;
     const now = Date.now();
     const userId = (await ctx.auth.getUserIdentity())?.subject;
 
     const patientId = await ctx.db.insert("patients", {
       medicalId,
+      cardNumber,
       ...args,
       isActive: true,
       createdBy: userId as Doc<"users">["_id"] | undefined,

@@ -23,14 +23,13 @@ import {
 import type { Id } from "@/convex/_generated/dataModel";
 
 // ─── Types ──────────────────────────────────────────────
-type View = "patients" | "add-patient" | "patient-detail";
+type View = "patients" | "add-patient" | "patient-detail" | "orders" | "new-order";
 
 // ─── Sidebar Navigation ─────────────────────────────────
 const navItems = [
   { id: "patients", icon: Users, label: "Patients" },
-  { id: "calendar", icon: Calendar, label: "Appointments" },
+  { id: "orders", icon: FileText, label: "Orders" },
   { id: "staff", icon: Stethoscope, label: "Staff" },
-  { id: "billing", icon: FileText, label: "Billing" },
 ];
 
 export default function Dashboard() {
@@ -39,6 +38,7 @@ export default function Dashboard() {
   const [currentView, setCurrentView] = useState<View>("patients");
   const [selectedPatientId, setSelectedPatientId] = useState<Id<"patients"> | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPatientForOrder, setSelectedPatientForOrder] = useState<Id<"patients"> | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -133,6 +133,29 @@ export default function Dashboard() {
               onBack={() => {
                 setSelectedPatientId(null);
                 setCurrentView("patients");
+              }}
+              onNewOrder={(pid) => {
+                setSelectedPatientForOrder(pid);
+                setCurrentView("new-order");
+              }}
+            />
+          )}
+          {currentView === "orders" && !selectedPatientForOrder && (
+            <OrdersList
+              key="orders"
+              onSelectPatient={(id) => {
+                setSelectedPatientForOrder(id);
+                setCurrentView("new-order");
+              }}
+            />
+          )}
+          {currentView === "new-order" && selectedPatientForOrder && (
+            <NewOrder
+              key="new-order"
+              patientId={selectedPatientForOrder}
+              onBack={() => {
+                setSelectedPatientForOrder(null);
+                setCurrentView("orders");
               }}
             />
           )}
@@ -264,6 +287,7 @@ function PatientList({
             <thead>
               <tr className="border-b border-white/30 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <th className="px-6 py-4">Patient</th>
+                <th className="px-6 py-4">Card #</th>
                 <th className="px-6 py-4">Medical ID</th>
                 <th className="px-6 py-4">Gender</th>
                 <th className="px-6 py-4">Blood Type</th>
@@ -307,7 +331,12 @@ function PatientList({
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="glass rounded-full px-3 py-1 text-xs font-medium text-primary">
+                      <span className="glass rounded-full px-2 py-0.5 text-xs font-mono text-muted-foreground">
+                        {patient.cardNumber}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="glass rounded-full px-2 py-0.5 text-xs font-mono text-primary">
                         {patient.medicalId}
                       </span>
                     </td>
@@ -622,9 +651,11 @@ function AddPatient({ onBack }: { onBack: () => void }) {
 function PatientDetail({
   patientId,
   onBack,
+  onNewOrder,
 }: {
   patientId: Id<"patients">;
   onBack: () => void;
+  onNewOrder: (patientId: Id<"patients">) => void;
 }) {
   const patient = useQuery(api.patients.getById, { patientId });
   const vitals = useQuery(api.patients.getVitals, { patientId });
@@ -733,6 +764,13 @@ function PatientDetail({
           </div>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => onNewOrder(patientId)}
+            className="glass glass-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary transition-all"
+          >
+            <FileText className="size-4" />
+            New Order
+          </button>
           {patient.isActive ? (
             <button
               onClick={async () => {
@@ -761,6 +799,7 @@ function PatientDetail({
       {/* Info Grid */}
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[
+          { label: "Card Number", value: patient.cardNumber },
           { label: "Date of Birth", value: patient.dateOfBirth || "—" },
           { label: "Age", value: patient.dateOfBirth ? `${Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years` : "—" }, // eslint-disable-line react-hooks/purity
           { label: "Gender", value: patient.gender },
@@ -1058,6 +1097,297 @@ function PatientDetail({
           </table>
         </div>
       </div>
+    </motion.div>
+  );
+}
+
+// ─── Orders List View ──────────────────────────────────
+function OrdersList({
+  onSelectPatient,
+}: {
+  onSelectPatient: (id: Id<"patients">) => void;
+}) {
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+
+  const departments: Record<string, string> = {
+    card_office: "Card Office",
+    doctor: "Doctor",
+    laboratory: "Laboratory",
+    pharmacy: "Pharmacy",
+    nursing: "Nursing",
+    radiology: "Radiology",
+    admin: "Admin",
+  };
+
+  const statusColors: Record<string, string> = {
+    pending: "bg-amber-500/15 text-amber-400",
+    in_progress: "bg-blue-500/15 text-blue-400",
+    completed: "bg-emerald-500/15 text-emerald-400",
+    cancelled: "bg-red-500/15 text-red-400",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="mx-auto max-w-6xl px-6 py-8"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Orders</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Inter-department order routing and tracking
+          </p>
+        </div>
+      </div>
+
+      <div className="glass glass-strong mt-6 overflow-hidden rounded-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <th className="px-6 py-4">Order #</th>
+                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4">From</th>
+                <th className="px-6 py-4">To</th>
+                <th className="px-6 py-4">Priority</th>
+                <th className="px-6 py-4">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                    No orders yet. Create one from a patient profile.
+                  </td>
+                </tr>
+              ) : (
+                allOrders.map((order: any) => (
+                  <tr key={order._id} className="border-b border-white/5 last:border-0">
+                    <td className="px-6 py-4 font-mono text-sm text-primary">{order.orderNumber}</td>
+                    <td className="px-6 py-4 text-sm capitalize text-muted-foreground">{order.type.replace(/_/g, " ")}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{departments[order.fromDepartment] || order.fromDepartment}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{departments[order.toDepartment] || order.toDepartment}</td>
+                    <td className="px-6 py-4 text-sm capitalize text-muted-foreground">{order.priority}</td>
+                    <td className="px-6 py-4">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] || ""}`}>{order.status}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── New Order Form ────────────────────────────────────
+function NewOrder({
+  patientId,
+  onBack,
+}: {
+  patientId: Id<"patients">;
+  onBack: () => void;
+}) {
+  const patient = useQuery(api.patients.getById, { patientId });
+  const createOrder = useMutation(api.orders.create);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState({
+    type: "lab_order" as const,
+    toDepartment: "laboratory" as const,
+    priority: "normal" as const,
+    itemDescription: "",
+    itemQuantity: "",
+    itemNotes: "",
+    clinicalNotes: "",
+  });
+
+  const typeToDept: Record<string, string> = {
+    lab_order: "laboratory",
+    pharmacy_order: "pharmacy",
+    nursing_order: "nursing",
+    radiology_order: "radiology",
+    general: "doctor",
+  };
+
+  const handleTypeChange = (type: string) => {
+    setForm({
+      ...form,
+      type: type as typeof form.type,
+      toDepartment: typeToDept[type] as typeof form.toDepartment,
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await createOrder({
+        patientId,
+        type: form.type,
+        fromDepartment: "doctor",
+        toDepartment: form.toDepartment,
+        priority: form.priority,
+        items: [{
+          description: form.itemDescription,
+          quantity: form.itemQuantity ? Number(form.itemQuantity) : undefined,
+          notes: form.itemNotes || undefined,
+        }],
+        clinicalNotes: form.clinicalNotes || undefined,
+      });
+      toast.success("Order created and routed.");
+      onBack();
+    } catch {
+      toast.error("Failed to create order.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const inputCls =
+    "w-full rounded-lg border border-white/5 bg-white/5 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-white/8";
+  const labelCls = "text-sm font-medium text-foreground";
+
+  if (!patient) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-muted-foreground font-mono">Loading patient...</p>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="mx-auto max-w-3xl px-6 py-8"
+    >
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onBack}
+          className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
+        >
+          ← Back
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">New Order</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Route an order for {patient.firstName} {patient.lastName}
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="glass glass-strong mt-8 rounded-xl p-8">
+        <div className="glass rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/15 text-sm font-bold text-primary">
+              {patient.firstName[0]}{patient.lastName[0]}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">{patient.firstName} {patient.lastName}</p>
+              <p className="text-xs text-muted-foreground font-mono">{patient.cardNumber} · {patient.medicalId}</p>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary">Order Details</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelCls}>Order Type *</label>
+            <select
+              required
+              className={`${inputCls} mt-1.5`}
+              value={form.type}
+              onChange={(e) => handleTypeChange(e.target.value)}
+            >
+              <option value="lab_order">Laboratory</option>
+              <option value="pharmacy_order">Pharmacy</option>
+              <option value="nursing_order">Nursing</option>
+              <option value="radiology_order">Radiology</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Priority *</label>
+            <select
+              required
+              className={`${inputCls} mt-1.5`}
+              value={form.priority}
+              onChange={(e) => setForm({ ...form, priority: e.target.value as typeof form.priority })}
+            >
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+              <option value="stat">STAT</option>
+            </select>
+          </div>
+        </div>
+
+        <h2 className="mb-3 mt-6 text-sm font-semibold uppercase tracking-wider text-primary">Items</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="sm:col-span-2">
+            <label className={labelCls}>Description *</label>
+            <input
+              required
+              className={`${inputCls} mt-1.5`}
+              value={form.itemDescription}
+              onChange={(e) => setForm({ ...form, itemDescription: e.target.value })}
+              placeholder="CBC, Metabolic Panel, Amoxicillin 500mg..."
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Quantity</label>
+            <input
+              type="number"
+              className={`${inputCls} mt-1.5`}
+              value={form.itemQuantity}
+              onChange={(e) => setForm({ ...form, itemQuantity: e.target.value })}
+              placeholder="1"
+            />
+          </div>
+        </div>
+        <div className="mt-4">
+          <label className={labelCls}>Item Notes</label>
+          <input
+            className={`${inputCls} mt-1.5`}
+            value={form.itemNotes}
+            onChange={(e) => setForm({ ...form, itemNotes: e.target.value })}
+            placeholder="Optional instructions for this item"
+          />
+        </div>
+
+        <div className="mt-6">
+          <label className={labelCls}>Clinical Notes</label>
+          <textarea
+            rows={3}
+            className={`${inputCls} mt-1.5 resize-none`}
+            value={form.clinicalNotes}
+            onChange={(e) => setForm({ ...form, clinicalNotes: e.target.value })}
+            placeholder="Reason for order, relevant history, special instructions..."
+          />
+        </div>
+
+        <div className="mt-8 flex gap-3">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="glass glass-strong flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25 disabled:opacity-60"
+          >
+            <FileText className="size-4" />
+            {isSubmitting ? "Creating..." : "Create & Route Order"}
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="glass glass-hover rounded-lg px-6 py-2.5 text-sm font-medium text-muted-foreground transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </motion.div>
   );
 }

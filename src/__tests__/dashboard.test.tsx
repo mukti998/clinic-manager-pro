@@ -70,9 +70,8 @@ describe("Dashboard component", () => {
   it("displays the sidebar navigation items", () => {
     render(<Dashboard />);
     expect(screen.getByText("Patients")).toBeInTheDocument();
-    expect(screen.getByText("Appointments")).toBeInTheDocument();
+    expect(screen.getByText("Orders")).toBeInTheDocument();
     expect(screen.getByText("Staff")).toBeInTheDocument();
-    expect(screen.getByText("Billing")).toBeInTheDocument();
   });
 
   it("shows the user name in the sidebar", () => {
@@ -83,6 +82,11 @@ describe("Dashboard component", () => {
   it("displays the Patient Records heading", () => {
     render(<Dashboard />);
     expect(screen.getByText("Patient Records")).toBeInTheDocument();
+  });
+
+  it("displays patient profile subtitle", () => {
+    render(<Dashboard />);
+    expect(screen.getByText("View, transfer, and manage patient profiles")).toBeInTheDocument();
   });
 
   it("has a New Profile button", () => {

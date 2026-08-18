@@ -29,13 +29,13 @@ const stagger = {
 const capabilities = [
   {
     icon: Users,
-    title: "Patient Profile Routing",
-    desc: "Transfer and receive patient records across departments with full audit trails and role-based access control.",
+    title: "Patient Registration",
+    desc: "Card office registers patients, captures history, phone, and card number. Profiles are sent to doctors instantly.",
   },
   {
     icon: Layers,
-    title: "Room Activity Tracking",
-    desc: "Monitor room status, occupancy, and activity in real time. Route orders and tasks to the right hands.",
+    title: "Profile Transfer",
+    desc: "Patient profiles route between departments — card office to doctor, doctor to lab. Full audit trail on every handoff.",
   },
   {
     icon: Database,
@@ -44,8 +44,8 @@ const capabilities = [
   },
   {
     icon: Route,
-    title: "Order Management",
-    desc: "Create, assign, and track orders across pharmacy, lab, and nursing. Every action is logged.",
+    title: "Inter-Department Orders",
+    desc: "Doctors send orders to lab, pharmacy, or nursing. Departments can route orders to each other. Every transfer is logged.",
   },
   {
     icon: Activity,
@@ -54,8 +54,8 @@ const capabilities = [
   },
   {
     icon: FileText,
-    title: "Invoice & Billing Pipeline",
-    desc: "Generate invoices from clinical events. Line-item breakdowns, tax calculation, payment status tracking.",
+    title: "Order History & Audit",
+    desc: "Every order, route, and status change is recorded with timestamp and operator. Full accountability.",
   },
 ];
 
@@ -74,13 +74,13 @@ const steps = [
   },
   {
     step: "02",
-    title: "Select a workspace",
-    desc: "Choose the department or service line you are operating in. Permissions follow your role.",
+    title: "Register or find a patient",
+    desc: "Card office creates profiles with history and card number. Doctors pull up existing patients by ID.",
   },
   {
     step: "03",
-    title: "Execute",
-    desc: "Transfer patients, record vitals, manage orders. Every mutation is validated and logged.",
+    title: "Route orders",
+    desc: "Doctors send orders to lab, pharmacy, or nursing. Departments forward to each other as needed.",
   },
 ];
 
@@ -143,15 +143,16 @@ export default function Landing() {
             internal operations platform
           </div>
           <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Hospital operations,{" "}
+            Patient records in.{" "}
             <span className="text-primary">
-              controlled.
+              Orders out.
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground">
-            Rayan is the internal platform for managing patient transfers, room
-            activity, orders, and clinical data. Built for the team that keeps
-            the hospital running — not for the waiting room.
+            Rayan controls hospital room activity from the card office to the
+            bedside. Register patients, send profiles to doctors, and route orders
+            to the laboratory, pharmacy, or anywhere they need to go — all
+            tracked, all typed, all in one place.
           </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <button
