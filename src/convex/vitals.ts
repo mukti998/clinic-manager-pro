@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 
 // ─── Get vitals history for a patient ───────────────────
 export const getHistory = query({
@@ -45,10 +46,10 @@ export const add = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const userId = (await ctx.auth.getUserIdentity())?.subject;
+    const identity = await ctx.auth.getUserIdentity();
     return await ctx.db.insert("vitals", {
       ...args,
-      recordedBy: userId as any,
+      recordedBy: identity?.subject as Doc<"users">["_id"] | undefined,
       recordedAt: Date.now(),
     });
   },

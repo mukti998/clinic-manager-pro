@@ -383,7 +383,7 @@ function AddPatient({ onBack }: { onBack: () => void }) {
       });
       toast.success("Patient registered successfully!");
       onBack();
-    } catch (err) {
+    } catch {
       toast.error("Failed to register patient. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -473,7 +473,7 @@ function AddPatient({ onBack }: { onBack: () => void }) {
               required
               className={`${inputCls} mt-1.5`}
               value={form.bloodType}
-              onChange={(e) => setForm({ ...form, bloodType: e.target.value as any })}
+              onChange={(e) => setForm({ ...form, bloodType: e.target.value as "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" })}
             >
               {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
                 <option key={bt} value={bt}>
@@ -692,13 +692,6 @@ function PatientDetail({
     );
   }
 
-  const age = patient.dateOfBirth
-    ? Math.floor(
-        (Date.now() - new Date(patient.dateOfBirth).getTime()) /
-          (365.25 * 24 * 60 * 60 * 1000),
-      )
-    : "—";
-
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -770,7 +763,7 @@ function PatientDetail({
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {[
           { label: "Date of Birth", value: patient.dateOfBirth || "—" },
-          { label: "Age", value: `${age} years` },
+          { label: "Age", value: patient.dateOfBirth ? `${Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years` : "—" }, // eslint-disable-line react-hooks/purity
           { label: "Gender", value: patient.gender },
           { label: "Blood Type", value: patient.bloodType },
           { label: "Phone", value: patient.phone },

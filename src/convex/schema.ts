@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { Infer, v } from "convex/values";
+import type { Validator } from "convex/values";
 
 // ─── Roles ──────────────────────────────────────────────
 export const ROLES = {
@@ -24,15 +25,19 @@ export type Role = Infer<typeof roleValidator>;
 
 // ─── Blood Type ─────────────────────────────────────────
 export const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+
+type BloodLiteral = (typeof BLOOD_TYPES)[number];
 export const bloodTypeValidator = v.union(
-  ...BLOOD_TYPES.map((bt) => v.literal(bt)) as [any, ...any[]],
+  ...(BLOOD_TYPES.map((bt) => v.literal(bt)) as [Validator<BloodLiteral>, ...Validator<BloodLiteral>[]]),
 );
 export type BloodType = Infer<typeof bloodTypeValidator>;
 
 // ─── Gender ─────────────────────────────────────────────
 export const GENDERS = ["male", "female", "other"] as const;
+
+type GenderLiteral = (typeof GENDERS)[number];
 export const genderValidator = v.union(
-  ...GENDERS.map((g) => v.literal(g)) as [any, ...any[]],
+  ...(GENDERS.map((g) => v.literal(g)) as [Validator<GenderLiteral>, ...Validator<GenderLiteral>[]]),
 );
 export type Gender = Infer<typeof genderValidator>;
 
