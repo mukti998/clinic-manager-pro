@@ -7,25 +7,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
   Activity,
-  ArrowLeftRight,
+  BarChart3,
   Beaker,
   BookOpen,
-  Brain,
-  Calendar,
   CheckCircle2,
   ChevronRight,
   ClipboardList,
   CreditCard,
+  DollarSign,
   FlaskConical,
   Heart,
   Home,
   Layers,
   Loader2,
   LogOut,
-  Mail,
-  Microscope,
-  Minus,
-  PawPrint,
   Pill,
   Plus,
   Radio,
@@ -35,7 +30,6 @@ import {
   Stethoscope,
   Syringe,
   Table2,
-  Ticket,
   TrendingUp,
   UserPlus,
   Users,
@@ -71,17 +65,19 @@ function getNavForRole(role: string | undefined) {
   const base = [{ id: "home", icon: Home, label: "Overview" }];
   switch (role) {
     case "receptionist":
-      return [...base, { id: "register", icon: UserPlus, label: "Register" }, { id: "queue", icon: Ticket, label: "Queue" }, { id: "checkout", icon: CreditCard, label: "Checkout" }];
+      return [...base, { id: "register", icon: UserPlus, label: "Register" },        { id: "queue", icon: Users, label: "Queue" }, { id: "checkout", icon: CreditCard, label: "Checkout" }]; // eslint-disable-line react-hooks/pure
     case "doctor":
-      return [...base, { id: "doctor-queue", icon: ClipboardList, label: "My Queue" }, { id: "patients", icon: Users, label: "Patients" }, { id: "orders", icon: Send, label: "Orders" }];
+      return [...base, { id: "doctor-queue", icon: ClipboardList, label: "My Queue" }, { id: "patients", icon: Users, label: "Patients" }];
     case "pharmacist":
-      return [...base, { id: "pharmacy-queue", icon: Pill, label: "Prescriptions" }, { id: "inventory", icon: Layers, label: "Inventory" }];
+      return [...base, { id: "pharmacy-queue", icon: Pill, label: "Prescriptions" }];
     case "lab_technician":
-      return [...base, { id: "lab-queue", icon: FlaskConical, label: "Lab Orders" }, { id: "results", icon: Table2, label: "Results" }];
+      return [...base, { id: "lab-queue", icon: FlaskConical, label: "Lab Orders" }];
     case "nurse":
-      return [...base, { id: "nurse-assignments", icon: Heart, label: "Assigned" }, { id: "vitals", icon: Activity, label: "Vitals" }, { id: "care", icon: BookOpen, label: "Notes" }];
+      return [...base, { id: "nurse-assignments", icon: Heart, label: "Assigned" }, { id: "vitals", icon: Activity, label: "Vitals" }];
+    case "admin":
+      return [...base, { id: "admin-reports", icon: BarChart3, label: "Financial" }, { id: "admin-staff", icon: Shield, label: "Staff" }, { id: "patients", icon: Users, label: "Patients" }];
     default:
-      return [...base, { id: "patients", icon: Users, label: "Patients" }, { id: "orders", icon: ClipboardList, label: "Orders" }, { id: "staff", icon: Shield, label: "Staff" }];
+      return [...base, { id: "patients", icon: Users, label: "Patients" }];
   }
 }
 
@@ -161,7 +157,7 @@ export default function Dashboard() {
           {view === "register" && <RegisterPatient key="reg" onDone={() => setView("queue")} />}
           {view === "queue" && <ReceptionistQueue key="rq" onSelect={(vid) => { setSelectedVisitId(vid); setView("visit-detail"); }} />}
           {view === "visit-detail" && selectedVisitId && <VisitDetail key={`vd-${selectedVisitId}`} visitId={selectedVisitId} onBack={() => setView("queue")} />}
-          {view === "checkout" && <CheckoutView key="co" onBack={() => setView("home")} />}
+          {view === "checkout" && <CheckoutView key="co" />}
           {view === "doctor-queue" && <DoctorQueue key="dq" onSelect={(vid) => { setSelectedVisitId(vid); setView("consult"); }} />}
           {view === "consult" && selectedVisitId && <DoctorConsult key={`dc-${selectedVisitId}`} visitId={selectedVisitId} onBack={() => setView("doctor-queue")} />}
           {view === "lab-queue" && <LabQueueView key="lq" />}
@@ -169,6 +165,8 @@ export default function Dashboard() {
           {view === "nurse-assignments" && <NurseAssignments key="na" />}
           {view === "vitals" && <VitalsEntry key="ve" />}
           {view === "patients" && <PatientListView key="pl" searchQuery={searchQuery} setSearchQuery={setSearchQuery} />}
+          {view === "admin-reports" && <AdminFinancial key="ar" />}
+          {view === "admin-staff" && <AdminStaff key="as" />}
         </AnimatePresence>
       </main>
     </div>
@@ -186,7 +184,7 @@ function HomeView({ role, userName }: { role: string | undefined; userName: stri
   const waitingQueue = useQuery(api.visits.getWaitingQueue);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-6xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Good day, {userName.split(" ")[0]}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{getGreeting(role)}</p>
@@ -196,7 +194,7 @@ function HomeView({ role, userName }: { role: string | undefined; userName: stri
         {[
           { label: "Today's Visits", value: todayCount ?? "—", icon: Users, color: "text-blue-400", bg: "bg-blue-400/10" },
           { label: "Revenue Today", value: todayRevenue !== undefined ? `$${todayRevenue.toLocaleString()}` : "—", icon: CreditCard, color: "text-emerald-400", bg: "bg-emerald-400/10" },
-          { label: "Waiting Queue", value: waitingQueue?.length ?? "—", icon: Ticket, color: "text-amber-400", bg: "bg-amber-400/10" },
+          { label: "Waiting Queue", value: waitingQueue?.length ?? "—", icon: Users, color: "text-amber-400", bg: "bg-amber-400/10" },
           { label: "Pending Labs", value: pendingLabs ?? "—", icon: FlaskConical, color: "text-violet-400", bg: "bg-violet-400/10" },
         ].map((c) => (
           <div key={c.label} className="glass glass-strong glass-hover rounded-xl p-5 transition-all">
@@ -297,7 +295,7 @@ function RegisterPatient({ onDone }: { onDone: () => void }) {
   const lbl = "text-sm font-medium text-foreground";
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-3xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">Register New Patient</h1>
       <p className="mt-1 text-sm text-muted-foreground">Register patient and assign to doctor — token generated after payment</p>
 
@@ -425,7 +423,7 @@ function VisitDetail({ visitId, onBack }: { visitId: Id<"visits">; onBack: () =>
   if (!visitData) return <div className="flex h-full items-center justify-center"><Loader2 className="size-6 animate-spin text-primary" /></div>;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-3xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <button onClick={onBack} className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground mb-6">← Back to Queue</button>
       <div className="glass glass-strong rounded-xl p-8">
         <div className="flex items-center justify-between">
@@ -458,7 +456,7 @@ function VisitDetail({ visitId, onBack }: { visitId: Id<"visits">; onBack: () =>
 // ═════════════════════════════════════════════════════════
 // RECEPTIONIST — Checkout
 // ═════════════════════════════════════════════════════════
-function CheckoutView({ onBack }: { onBack: () => void }) {
+function CheckoutView() {
   const activeVisits = useQuery(api.visits.getActiveVisits);
   const processPayment = useMutation(api.billing.processPayment);
   const updateStatus = useMutation(api.visits.updateStatus);
@@ -467,7 +465,7 @@ function CheckoutView({ onBack }: { onBack: () => void }) {
   const completedVisits = activeVisits?.filter((v) => v.status === "completed") || [];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-4xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">Checkout</h1>
       <p className="mt-1 text-sm text-muted-foreground">Process final payment and discharge patients</p>
 
@@ -510,7 +508,7 @@ function DoctorQueue({ onSelect }: { onSelect: (visitId: Id<"visits">) => void }
   const queue = useQuery(api.visits.getDoctorQueue, { doctorId: user?._id as Id<"users"> || "" as Id<"users"> });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-4xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">My Queue</h1>
       <p className="mt-1 text-sm text-muted-foreground">Patients waiting for consultation</p>
 
@@ -583,7 +581,7 @@ function DoctorConsult({ visitId, onBack }: { visitId: Id<"visits">; onBack: () 
   const cls = "w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-white/6";
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-4xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <button onClick={onBack} className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground mb-6">← Back to Queue</button>
 
       {/* Patient info bar */}
@@ -682,7 +680,7 @@ function LabQueueView() {
   const [resultForm, setResultForm] = useState<{ testName: string; result: string; unit: string }[]>([]);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-5xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">Lab Orders</h1>
       <p className="mt-1 text-sm text-muted-foreground">Manage incoming test orders — accept, collect samples, enter results</p>
 
@@ -764,7 +762,7 @@ function PharmacyQueueView() {
   const reject = useMutation(api.prescriptions.reject);
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-5xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">Prescription Queue</h1>
       <p className="mt-1 text-sm text-muted-foreground">Verify allergies, approve prescriptions, and dispense</p>
 
@@ -808,7 +806,7 @@ function NurseAssignments() {
   const patients = activeVisits?.filter((v) => v.status === "with_doctor" || v.status === "lab_pending" || v.status === "pharmacy_pending") || [];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-5xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">Assigned Patients</h1>
       <p className="mt-1 text-sm text-muted-foreground">Patients requiring nursing attention</p>
 
@@ -842,7 +840,7 @@ function VitalsEntry() {
   const cls = "w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-white/6";
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="mx-auto max-w-3xl px-6 py-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-foreground">Record Vitals</h1>
       <p className="mt-1 text-sm text-muted-foreground">Enter patient vital signs</p>
       <div className="glass glass-strong mt-6 rounded-xl p-6">
@@ -903,6 +901,171 @@ function PatientListView({ searchQuery, setSearchQuery }: { searchQuery: string;
 // ═════════════════════════════════════════════════════════
 // SHARED UI HELPERS
 // ═════════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════════
+// ADMIN — Financial Reports
+// ═════════════════════════════════════════════════════════
+function AdminFinancial() {
+  const todayRevenue = useQuery(api.billing.getTodayRevenue);
+  const totalRevenue = useQuery(api.billing.getTotalRevenue);
+  const dailyChart = useQuery(api.billing.getDailyRevenueChart);
+  const recentPayments = useQuery(api.billing.getRecentPayments, { limit: 20 });
+  const [range, setRange] = useState<"today" | "week" | "month">("today");
+  const now = Date.now();
+  const rangeStart = range === "today" ? new Date().setHours(0, 0, 0, 0) : range === "week" ? now - 7 * 86400000 : now - 30 * 86400000;
+  const rangeData = useQuery(api.billing.getRevenueByRange, { startDate: rangeStart, endDate: now });
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
+      <h1 className="text-2xl font-bold text-foreground">Financial Reports</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Revenue, transactions, and department activity — admin only</p>
+      <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="glass glass-strong rounded-xl p-5"><p className="text-xs text-muted-foreground font-medium">Today{"'"}s Revenue</p><p className="mt-2 text-2xl font-bold text-foreground">${todayRevenue?.toLocaleString() || "0"}</p></div>
+        <div className="glass glass-strong rounded-xl p-5"><p className="text-xs text-muted-foreground font-medium">Total Revenue</p><p className="mt-2 text-2xl font-bold text-foreground">${totalRevenue?.toLocaleString() || "0"}</p></div>
+        <div className="glass glass-strong rounded-xl p-5"><p className="text-xs text-muted-foreground font-medium">Range Total</p><p className="mt-2 text-2xl font-bold text-foreground">${rangeData?.totalRevenue?.toLocaleString() || "0"}</p>
+          <div className="mt-2 flex gap-1">
+            {(["today", "week", "month"] as const).map((r) => (
+              <button key={r} onClick={() => setRange(r)} className={`rounded-md px-2 py-0.5 text-[10px] font-medium transition-all ${range === r ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground"}`}>{r === "today" ? "Today" : r === "week" ? "7 Days" : "30 Days"}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {rangeData && Object.keys(rangeData.byMethod).length > 0 && (
+        <div className="mt-6 glass glass-strong rounded-xl p-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Revenue by Payment Method</h3>
+          <div className="grid grid-cols-4 gap-4">
+            {Object.entries(rangeData.byMethod).map(([method, amount]) => (
+              <div key={method} className="text-center"><p className="text-xs text-muted-foreground capitalize">{method}</p><p className="text-lg font-bold text-foreground mt-1">${(amount as number).toLocaleString()}</p></div>
+            ))}
+          </div>
+        </div>
+      )}
+      {dailyChart && (
+        <div className="mt-6 glass glass-strong rounded-xl p-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Daily Revenue — Last 7 Days</h3>
+          <div className="space-y-2">
+            {dailyChart.map((day) => {
+              const maxRev = Math.max(...dailyChart.map((d) => d.revenue), 1);
+              const pct = (day.revenue / maxRev) * 100;
+              return (
+                <div key={day.date} className="flex items-center gap-3">
+                  <span className="w-24 text-[10px] text-muted-foreground">{day.date}</span>
+                  <div className="flex-1 h-6 rounded-lg bg-white/5 overflow-hidden"><div className="h-full rounded-lg bg-primary/30 transition-all" style={{ width: `${Math.max(pct, 2)}%` }} /></div>
+                  <span className="w-16 text-right text-xs font-medium text-foreground">${day.revenue.toLocaleString()}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {recentPayments && recentPayments.length > 0 && (
+        <div className="mt-6 glass glass-strong rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/5"><h3 className="text-sm font-semibold text-foreground">Recent Transactions</h3></div>
+          <table className="w-full">
+            <thead><tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <th className="px-6 py-3">Payment #</th><th className="px-6 py-3">Amount</th><th className="px-6 py-3">Method</th><th className="px-6 py-3">Description</th><th className="px-6 py-3">Time</th>
+            </tr></thead>
+            <tbody>
+              {recentPayments.map((p) => (
+                <tr key={p._id} className="border-b border-white/5 last:border-0 hover:bg-white/5">
+                  <td className="px-6 py-3 font-mono text-xs text-primary">{p.paymentNumber}</td>
+                  <td className="px-6 py-3 text-sm font-medium text-foreground">${p.amount.toLocaleString()}</td>
+                  <td className="px-6 py-3"><span className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs text-muted-foreground capitalize">{p.method}</span></td>
+                  <td className="px-6 py-3 text-xs text-muted-foreground max-w-xs truncate">{p.description}</td>
+                  <td className="px-6 py-3 text-xs text-muted-foreground">{new Date(p.createdAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════
+// ADMIN — Staff Management
+// ═════════════════════════════════════════════════════════
+function AdminStaff() {
+  const allUsers = useQuery(api.users.listAll);
+  const userStats = useQuery(api.users.getStats);
+  const createUser = useMutation(api.users.createUser);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", role: "doctor", department: "", specialization: "", phone: "" });
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      await createUser({ name: form.name, email: form.email, role: form.role as never, department: form.department || undefined, specialization: form.specialization || undefined, phone: form.phone || undefined });
+      toast.success(`${form.name} added to staff.`);
+      setForm({ name: "", email: "", role: "doctor", department: "", specialization: "", phone: "" });
+      setShowForm(false);
+    } catch { toast.error("Failed to create user."); }
+    finally { setCreating(false); }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
+      <div className="flex items-center justify-between">
+        <div><h1 className="text-2xl font-bold text-foreground">Staff Management</h1><p className="mt-1 text-sm text-muted-foreground">Create accounts, assign roles, manage access</p></div>
+        <button onClick={() => setShowForm(!showForm)} className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/20"><UserPlus className="size-4" /> Add Staff</button>
+      </div>
+      {userStats && (
+        <div className="grid grid-cols-3 gap-4 mt-6">
+          {[{ label: "Doctors", value: userStats.doctors }, { label: "Pharmacists", value: userStats.pharmacists }, { label: "Lab Technicians", value: userStats.labTechs }].map((s) => (
+            <div key={s.label} className="glass glass-strong rounded-xl p-4 flex items-center justify-between"><p className="text-xs text-muted-foreground font-medium">{s.label}</p><p className="text-xl font-bold text-foreground">{s.value}</p></div>
+          ))}
+        </div>
+      )}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+            <form onSubmit={handleCreate} className="glass glass-strong mt-6 rounded-xl p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-4">New Staff Member</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Full Name" required><input required className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Doe" /></Field>
+                <Field label="Email" required><input required type="email" className={inputCls} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@hospital.com" /></Field>
+                <Field label="Role" required>
+                  <select required className={inputCls} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                    <option value="doctor">Doctor</option><option value="nurse">Nurse</option><option value="pharmacist">Pharmacist</option>
+                    <option value="lab_technician">Lab Technician</option><option value="receptionist">Receptionist</option><option value="admin">Admin</option>
+                  </select>
+                </Field>
+                <Field label="Department"><input className={inputCls} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder="Cardiology" /></Field>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <button type="submit" disabled={creating} className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60">{creating ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} Create Account</button>
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-xl px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="glass glass-strong mt-6 overflow-hidden rounded-xl">
+        <table className="w-full">
+          <thead><tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <th className="px-6 py-4">Name</th><th className="px-6 py-4">Email</th><th className="px-6 py-4">Role</th><th className="px-6 py-4">Department</th>
+          </tr></thead>
+          <tbody>
+            {!allUsers ? <tr><td colSpan={4} className="px-6 py-12 text-center text-sm text-muted-foreground">Loading…</td></tr>
+            : allUsers.length === 0 ? <tr><td colSpan={4} className="px-6 py-12 text-center text-sm text-muted-foreground">No staff found.</td></tr>
+            : allUsers.map((u) => (
+              <tr key={u._id} className="border-b border-white/5 last:border-0 hover:bg-white/5">
+                <td className="px-6 py-3 text-sm font-medium text-foreground">{u.name || "—"}</td>
+                <td className="px-6 py-3 text-xs text-muted-foreground font-mono">{u.email || "—"}</td>
+                <td className="px-6 py-3"><span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary capitalize">{u.role?.replace("_", " ") || "—"}</span></td>
+                <td className="px-6 py-3 text-xs text-muted-foreground">{u.department || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </motion.div>
+  );
+}
+
 function SectionTitle({ icon: Icon, label }: { icon: React.FC<{ className?: string }>; label: string }) {
   return <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary"><Icon className="size-4" />{label}</h2>;
 }
