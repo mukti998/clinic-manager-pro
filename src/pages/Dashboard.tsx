@@ -6,44 +6,186 @@ import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Heart,
-  Users,
   Activity,
+  ArrowLeftRight,
+  Beaker,
+  BookOpen,
+  Brain,
   Calendar,
-  LogOut,
-  Search,
-  Plus,
   ChevronRight,
-  UserPlus,
-  TrendingUp,
-  Stethoscope,
+  ClipboardList,
   FileText,
+  FlaskConical,
+  Heart,
+  Home,
+  Layers,
+  Loader2,
+  LogOut,
+  Mail,
+  Microscope,
+  PawPrint,
+  Pill,
+  Plus,
+  Radio,
+  Search,
+  Send,
+  Shield,
+  Stethoscope,
+  Syringe,
+  Table2,
+  TrendingUp,
+  UserPlus,
+  Users,
   X,
+  Zap,
 } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
+import type { Role } from "@/convex/schema";
 
-// ─── Types ──────────────────────────────────────────────
-type View = "patients" | "add-patient" | "patient-detail" | "orders" | "new-order";
+// ─── Types ────────────────────────────────────────────────
+type View =
+  | "home"
+  | "patients"
+  | "add-patient"
+  | "patient-detail"
+  | "orders"
+  | "new-order";
 
-// ─── Sidebar Navigation ─────────────────────────────────
-const navItems = [
-  { id: "patients", icon: Users, label: "Patients" },
-  { id: "orders", icon: FileText, label: "Orders" },
-  { id: "staff", icon: Stethoscope, label: "Staff" },
+// ─── Role → Department mapping ────────────────────────────
+const ROLE_DEPARTMENT: Record<string, string> = {
+  doctor: "doctor",
+  pharmacist: "pharmacy",
+  lab_technician: "laboratory",
+  nurse: "nursing",
+  admin: "admin",
+  receptionist: "card_office",
+};
+
+// ─── Quick-action routes for doctors ──────────────────────
+const ROUTE_ACTIONS = [
+  {
+    id: "laboratory",
+    label: "Laboratory",
+    sublabel: "Blood work, cultures, panels",
+    icon: FlaskConical,
+    color: "text-emerald-400",
+    bg: "bg-emerald-400/10",
+    ring: "hover:ring-emerald-400/30",
+    type: "lab_order" as const,
+  },
+  {
+    id: "pharmacy",
+    label: "Pharmacy",
+    sublabel: "Medications, prescriptions",
+    icon: Pill,
+    color: "text-violet-400",
+    bg: "bg-violet-400/10",
+    ring: "hover:ring-violet-400/30",
+    type: "pharmacy_order" as const,
+  },
+  {
+    id: "radiology",
+    label: "Radiology",
+    sublabel: "X-ray, CT, MRI, Ultrasound",
+    icon: Radio,
+    color: "text-amber-400",
+    bg: "bg-amber-400/10",
+    ring: "hover:ring-amber-400/30",
+    type: "radiology_order" as const,
+  },
+  {
+    id: "nursing",
+    label: "Nursing",
+    sublabel: "Care plans, observations",
+    icon: Syringe,
+    color: "text-rose-400",
+    bg: "bg-rose-400/10",
+    ring: "hover:ring-rose-400/30",
+    type: "nursing_order" as const,
+  },
 ];
 
+// ─── Role-specific sidebar nav ────────────────────────────
+function getNavForRole(role: string | undefined) {
+  const base = [
+    { id: "home", icon: Home, label: "Overview" },
+    { id: "patients", icon: Users, label: "Patients" },
+    { id: "orders", icon: ClipboardList, label: "Orders" },
+  ];
+
+  if (role === "doctor") {
+    return [
+      ...base,
+      { id: "vitals", icon: Heart, label: "Vitals" },
+      { id: "calendar", icon: Calendar, label: "Schedule" },
+    ];
+  }
+  if (role === "pharmacist") {
+    return [
+      ...base,
+      { id: "inventory", icon: Pill, label: "Inventory" },
+      { id: "dispensing", icon: Layers, label: "Dispensing" },
+    ];
+  }
+  if (role === "lab_technician") {
+    return [
+      ...base,
+      { id: "tests", icon: FlaskConical, label: "Test Queue" },
+      { id: "results", icon: Table2, label: "Results" },
+    ];
+  }
+  if (role === "nurse") {
+    return [
+      ...base,
+      { id: "vitals", icon: Heart, label: "Vitals" },
+      { id: "care", icon: BookOpen, label: "Care Plans" },
+    ];
+  }
+  // admin / receptionist
+  return [...base, { id: "staff", icon: Shield, label: "Staff" }];
+}
+
+// ─── Role greeting ────────────────────────────────────────
+function getGreeting(role: string | undefined) {
+  switch (role) {
+    case "doctor":
+      return "Your clinical workspace";
+    case "pharmacist":
+      return "Pharmacy operations at a glance";
+    case "lab_technician":
+      return "Lab queue and test management";
+    case "nurse":
+      return "Nursing station overview";
+    case "receptionist":
+      return "Patient registration and transfers";
+    case "admin":
+      return "System administration dashboard";
+    default:
+      return "Operations dashboard";
+  }
+}
+
+// ═════════════════════════════════════════════════════════
+// MAIN DASHBOARD
+// ═════════════════════════════════════════════════════════
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<View>("patients");
-  const [selectedPatientId, setSelectedPatientId] = useState<Id<"patients"> | null>(null);
+  const [currentView, setCurrentView] = useState<View>("home");
+  const [selectedPatientId, setSelectedPatientId] =
+    useState<Id<"patients"> | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPatientForOrder, setSelectedPatientForOrder] = useState<Id<"patients"> | null>(null);
+  const [selectedPatientForOrder, setSelectedPatientForOrder] =
+    useState<Id<"patients"> | null>(null);
+
+  const userRole = (user?.role as Role) || undefined;
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
   };
+
+  const navItems = getNavForRole(userRole);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-mesh bg-dots">
@@ -51,13 +193,30 @@ export default function Dashboard() {
       <aside className="glass-strong flex w-64 flex-col border-r border-white/5">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-primary/15">
             <Heart className="size-4.5 text-primary" />
           </div>
-          <span className="text-lg font-bold tracking-tight text-foreground font-mono">
-            rayan
-          </span>
+          <div>
+            <span className="text-lg font-bold tracking-tight text-foreground font-mono">
+              rayan
+            </span>
+          </div>
         </div>
+
+        {/* Role badge */}
+        {userRole && (
+          <div className="mx-4 mb-2">
+            <div className="glass flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
+              <Stethoscope className="size-3.5 text-primary" />
+              <span className="font-medium text-primary capitalize">
+                {userRole.replace("_", " ")}
+              </span>
+              <span className="ml-auto text-muted-foreground">
+                {ROLE_DEPARTMENT[userRole] || "general"}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Nav */}
         <nav className="mt-4 flex-1 space-y-1 px-3">
@@ -69,7 +228,11 @@ export default function Dashboard() {
                 setSelectedPatientId(null);
               }}
               className={`flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                currentView === item.id || (item.id === "patients" && (currentView === "patients" || currentView === "add-patient" || currentView === "patient-detail"))
+                currentView === item.id ||
+                (item.id === "patients" &&
+                  (currentView === "patients" ||
+                    currentView === "add-patient" ||
+                    currentView === "patient-detail"))
                   ? "glass bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-white/40 hover:text-foreground"
               }`}
@@ -79,6 +242,36 @@ export default function Dashboard() {
             </button>
           ))}
         </nav>
+
+        {/* Quick route shortcuts (doctor only) */}
+        {userRole === "doctor" && (
+          <div className="px-3 pb-4">
+            <p className="mb-2 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Quick Route
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {ROUTE_ACTIONS.map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() => {
+                    setSelectedPatientForOrder(null);
+                    setCurrentView("orders");
+                  }}
+                  className={`glass glass-hover flex flex-col items-center gap-1.5 rounded-xl px-2 py-3 text-center transition-all hover:ring-1 ${action.ring}`}
+                >
+                  <div
+                    className={`flex size-8 items-center justify-center rounded-lg ${action.bg}`}
+                  >
+                    <action.icon className={`size-4 ${action.color}`} />
+                  </div>
+                  <span className="text-xs font-medium text-foreground">
+                    {action.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* User / Sign Out */}
         <div className="border-t border-white/5 p-4">
@@ -108,6 +301,13 @@ export default function Dashboard() {
       {/* ─── Main Content ────────────────────────────── */}
       <main className="flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">
+          {currentView === "home" && (
+            <HomeView
+              key="home"
+              role={userRole}
+              userName={user?.name || "User"}
+            />
+          )}
           {currentView === "patients" && !selectedPatientId && (
             <PatientList
               key="list"
@@ -165,59 +365,193 @@ export default function Dashboard() {
   );
 }
 
-// ─── Stats Row ──────────────────────────────────────────
-function StatsRow() {
+// ═════════════════════════════════════════════════════════
+// HOME VIEW — Role-based overview with quick actions
+// ═════════════════════════════════════════════════════════
+function HomeView({
+  role,
+  userName,
+}: {
+  role: string | undefined;
+  userName: string;
+}) {
   const stats = useQuery(api.patients.getStats);
-
-  const cards = [
-    {
-      label: "Total Patients",
-      value: stats?.total ?? "—",
-      icon: Users,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10",
-    },
-    {
-      label: "Active",
-      value: stats?.active ?? "—",
-      icon: Activity,
-      color: "text-emerald-500",
-      bg: "bg-emerald-500/10",
-    },
-    {
-      label: "Recent (30d)",
-      value: stats?.recentPatients ?? "—",
-      icon: TrendingUp,
-      color: "text-violet-500",
-      bg: "bg-violet-500/10",
-    },
-    {
-      label: "Male / Female",
-      value: stats ? `${stats.male} / ${stats.female}` : "—",
-      icon: Users,
-      color: "text-amber-500",
-      bg: "bg-amber-500/10",
-    },
-  ];
+  const orders = useQuery(api.orders.listByDepartment, {
+    department: (ROLE_DEPARTMENT[role || ""] || "doctor") as "doctor" | "laboratory" | "pharmacy" | "nursing" | "card_office" | "admin",
+    status: "pending",
+  });
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      {cards.map((c) => (
-        <div key={c.label} className="glass glass-strong glass-hover rounded-xl p-5 transition-all">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">{c.label}</p>
-            <div className={`flex size-9 items-center justify-center rounded-xl ${c.bg}`}>
-              <c.icon className={`size-4.5 ${c.color}`} />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="mx-auto max-w-6xl px-6 py-8"
+    >
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-foreground">
+          Good day, {userName.split(" ")[0]}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {getGreeting(role)}
+        </p>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[
+          {
+            label: "Total Patients",
+            value: stats?.total ?? "—",
+            icon: Users,
+            color: "text-blue-400",
+            bg: "bg-blue-400/10",
+          },
+          {
+            label: "Active",
+            value: stats?.active ?? "—",
+            icon: Activity,
+            color: "text-emerald-400",
+            bg: "bg-emerald-400/10",
+          },
+          {
+            label: "Recent (30d)",
+            value: stats?.recentPatients ?? "—",
+            icon: TrendingUp,
+            color: "text-violet-400",
+            bg: "bg-violet-400/10",
+          },
+          {
+            label: "Pending Orders",
+            value: orders?.length ?? "—",
+            icon: ClipboardList,
+            color: "text-amber-400",
+            bg: "bg-amber-400/10",
+          },
+        ].map((c) => (
+          <div
+            key={c.label}
+            className="glass glass-strong glass-hover rounded-xl p-5 transition-all"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">{c.label}</p>
+              <div
+                className={`flex size-9 items-center justify-center rounded-xl ${c.bg}`}
+              >
+                <c.icon className={`size-4.5 ${c.color}`} />
+              </div>
             </div>
+            <p className="mt-2 text-2xl font-bold text-foreground">{c.value}</p>
           </div>
-          <p className="mt-2 text-2xl font-bold text-foreground">{c.value}</p>
+        ))}
+      </div>
+
+      {/* Quick Route Actions (for doctors) */}
+      {role === "doctor" && (
+        <div className="mt-8">
+          <h2 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Send to Department
+          </h2>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {ROUTE_ACTIONS.map((action) => (
+              <button
+                key={action.id}
+                className={`glass glass-strong glass-hover group flex flex-col items-center gap-4 rounded-xl p-6 text-center transition-all hover:ring-1 ${action.ring}`}
+              >
+                <div
+                  className={`flex size-14 items-center justify-center rounded-2xl ${action.bg} transition-transform group-hover:scale-110`}
+                >
+                  <action.icon className={`size-7 ${action.color}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {action.label}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {action.sublabel}
+                  </p>
+                </div>
+                <span className="flex items-center gap-1 text-xs text-primary font-medium">
+                  Create order
+                  <Send className="size-3" />
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      ))}
-    </div>
+      )}
+
+      {/* Pending orders for non-doctor roles */}
+      {role !== "doctor" && orders && orders.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Incoming Orders
+          </h2>
+          <div className="glass glass-strong overflow-hidden rounded-xl">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <th className="px-6 py-4">Order #</th>
+                  <th className="px-6 py-4">Type</th>
+                  <th className="px-6 py-4">Priority</th>
+                  <th className="px-6 py-4">Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.slice(0, 5).map((order) => (
+                  <tr
+                    key={order._id}
+                    className="border-b border-white/5 last:border-0"
+                  >
+                    <td className="px-6 py-3 font-mono text-sm text-primary">
+                      {order.orderNumber}
+                    </td>
+                    <td className="px-6 py-3 text-sm capitalize text-muted-foreground">
+                      {order.type.replace(/_/g, " ")}
+                    </td>
+                    <td className="px-6 py-3">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          order.priority === "stat"
+                            ? "bg-red-500/15 text-red-400"
+                            : order.priority === "urgent"
+                              ? "bg-amber-500/15 text-amber-400"
+                              : "bg-blue-500/15 text-blue-400"
+                        }`}
+                      >
+                        {order.priority}
+                      </span>
+                    </td>
+                    <td className="px-6 py-3 text-sm text-muted-foreground">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state for pending orders */}
+      {role !== "doctor" && orders && orders.length === 0 && (
+        <div className="mt-8">
+          <div className="glass rounded-xl p-8 text-center">
+            <ClipboardList className="mx-auto size-10 text-muted-foreground/40" />
+            <p className="mt-3 text-sm text-muted-foreground">
+              No pending orders. New orders will appear here.
+            </p>
+          </div>
+        </div>
+      )}
+    </motion.div>
   );
 }
 
-// ─── Patient List View ──────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// PATIENT LIST
+// ═════════════════════════════════════════════════════════
 function PatientList({
   searchQuery,
   setSearchQuery,
@@ -244,37 +578,37 @@ function PatientList({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Patient Records</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            Patient Records
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             View, transfer, and manage patient profiles
           </p>
         </div>
         <button
           onClick={onAddPatient}
-          className="glass glass-strong flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25"
+          className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25"
         >
           <Plus className="size-4" />
           New Profile
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="mt-6">
-        <StatsRow />
-      </div>
-
       {/* Search */}
-      <div className="glass mt-6 flex items-center gap-3 rounded-lg px-4 py-3">
+      <div className="glass mt-6 flex items-center gap-3 rounded-xl px-4 py-3">
         <Search className="size-4.5 text-muted-foreground" />
         <input
           type="text"
-          placeholder="Search by name, medical ID, or phone..."
+          placeholder="Search by name, medical ID, or phone…"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
         />
         {searchQuery && (
-          <button onClick={() => setSearchQuery("")} className="text-muted-foreground hover:text-foreground">
+          <button
+            onClick={() => setSearchQuery("")}
+            className="text-muted-foreground hover:text-foreground"
+          >
             <X className="size-4" />
           </button>
         )}
@@ -298,14 +632,22 @@ function PatientList({
             <tbody>
               {patients === undefined ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">
-                    Loading patients...
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
+                    Loading patients…
                   </td>
                 </tr>
               ) : patients.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">
-                    {searchQuery ? "No patients match your search." : "No patients registered yet."}
+                  <td
+                    colSpan={7}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
+                    {searchQuery
+                      ? "No patients match your search."
+                      : "No patients registered yet."}
                   </td>
                 </tr>
               ) : (
@@ -318,7 +660,8 @@ function PatientList({
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                          {patient.firstName[0]}{patient.lastName[0]}
+                          {patient.firstName[0]}
+                          {patient.lastName[0]}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-foreground">
@@ -365,7 +708,9 @@ function PatientList({
   );
 }
 
-// ─── Add Patient Form ───────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// ADD PATIENT
+// ═════════════════════════════════════════════════════════
 function AddPatient({ onBack }: { onBack: () => void }) {
   const createPatient = useMutation(api.patients.create);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -392,7 +737,10 @@ function AddPatient({ onBack }: { onBack: () => void }) {
     setIsSubmitting(true);
     try {
       const allergies = form.allergies
-        ? form.allergies.split(",").map((a) => a.trim()).filter(Boolean)
+        ? form.allergies
+            .split(",")
+            .map((a) => a.trim())
+            .filter(Boolean)
         : undefined;
       await createPatient({
         firstName: form.firstName,
@@ -420,7 +768,7 @@ function AddPatient({ onBack }: { onBack: () => void }) {
   };
 
   const inputCls =
-    "w-full rounded-xl border border-white/40 bg-white/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-white/70";
+    "w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-white/6";
   const labelCls = "text-sm font-medium text-foreground";
 
   return (
@@ -430,14 +778,17 @@ function AddPatient({ onBack }: { onBack: () => void }) {
       exit={{ opacity: 0, x: -20 }}
       className="mx-auto max-w-3xl px-6 py-8"
     >
-      <div className="flex items-center gap-4">              <button
-              onClick={onBack}
-              className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
-            >
-              ← Back
-            </button>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onBack}
+          className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
+        >
+          ← Back
+        </button>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">New Patient Profile</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            New Patient Profile
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Create a new patient record in the system
           </p>
@@ -445,194 +796,182 @@ function AddPatient({ onBack }: { onBack: () => void }) {
       </div>
 
       <form onSubmit={handleSubmit} className="glass glass-strong mt-8 rounded-xl p-8">
-        {/* Personal Info */}
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-primary">
-          Personal Information
-        </h2>
+        <SectionTitle icon={Users} label="Personal Information" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>First Name *</label>
+          <Field label="First Name" required>
             <input
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.firstName}
               onChange={(e) => setForm({ ...form, firstName: e.target.value })}
               placeholder="John"
             />
-          </div>
-          <div>
-            <label className={labelCls}>Last Name *</label>
+          </Field>
+          <Field label="Last Name" required>
             <input
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.lastName}
               onChange={(e) => setForm({ ...form, lastName: e.target.value })}
               placeholder="Doe"
             />
-          </div>
-          <div>
-            <label className={labelCls}>Date of Birth *</label>
+          </Field>
+          <Field label="Date of Birth" required>
             <input
               required
               type="date"
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.dateOfBirth}
-              onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, dateOfBirth: e.target.value })
+              }
             />
-          </div>
-          <div>
-            <label className={labelCls}>Gender *</label>
+          </Field>
+          <Field label="Gender" required>
             <select
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.gender}
               onChange={(e) =>
-                setForm({ ...form, gender: e.target.value as "male" | "female" | "other" })
+                setForm({
+                  ...form,
+                  gender: e.target.value as "male" | "female" | "other",
+                })
               }
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
               <option value="other">Other</option>
             </select>
-          </div>
-          <div>
-            <label className={labelCls}>Blood Type *</label>
+          </Field>
+          <Field label="Blood Type" required>
             <select
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.bloodType}
-              onChange={(e) => setForm({ ...form, bloodType: e.target.value as "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  bloodType: e.target.value as
+                    | "A+"
+                    | "A-"
+                    | "B+"
+                    | "B-"
+                    | "AB+"
+                    | "AB-"
+                    | "O+"
+                    | "O-",
+                })
+              }
             >
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((bt) => (
-                <option key={bt} value={bt}>
-                  {bt}
-                </option>
-              ))}
+              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
+                (bt) => (
+                  <option key={bt} value={bt}>
+                    {bt}
+                  </option>
+                ),
+              )}
             </select>
-          </div>
+          </Field>
         </div>
 
-        {/* Contact */}
-        <h2 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-primary">
-          Contact Information
-        </h2>
+        <SectionTitle icon={Mail} label="Contact Information" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>Phone *</label>
+          <Field label="Phone" required>
             <input
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder="+1 (555) 123-4567"
             />
-          </div>
-          <div>
-            <label className={labelCls}>Email</label>
+          </Field>
+          <Field label="Email">
             <input
               type="email"
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="john@example.com"
             />
-          </div>
+          </Field>
           <div className="sm:col-span-2">
-            <label className={labelCls}>Address</label>
-            <input
-              className={`${inputCls} mt-1.5`}
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              placeholder="123 Main St, City, State"
-            />
+            <Field label="Address">
+              <input
+                className={inputCls}
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="123 Main St, City, State"
+              />
+            </Field>
           </div>
         </div>
 
-        {/* Emergency */}
-        <h2 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-primary">
-          Emergency Contact
-        </h2>
+        <SectionTitle icon={Shield} label="Emergency Contact" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>Contact Name</label>
+          <Field label="Contact Name">
             <input
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.emergencyContactName}
-              onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, emergencyContactName: e.target.value })
+              }
               placeholder="Jane Doe"
             />
-          </div>
-          <div>
-            <label className={labelCls}>Contact Phone</label>
+          </Field>
+          <Field label="Contact Phone">
             <input
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.emergencyContactPhone}
-              onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, emergencyContactPhone: e.target.value })
+              }
               placeholder="+1 (555) 987-6543"
             />
-          </div>
+          </Field>
         </div>
 
-        {/* Medical */}
-        <h2 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-primary">
-          Medical Information
-        </h2>
+        <SectionTitle icon={Stethoscope} label="Medical Information" />
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className={labelCls}>Allergies (comma separated)</label>
-            <input
-              className={`${inputCls} mt-1.5`}
-              value={form.allergies}
-              onChange={(e) => setForm({ ...form, allergies: e.target.value })}
-              placeholder="Penicillin, Peanuts, Latex"
-            />
+            <Field label="Allergies (comma separated)">
+              <input
+                className={inputCls}
+                value={form.allergies}
+                onChange={(e) =>
+                  setForm({ ...form, allergies: e.target.value })
+                }
+                placeholder="Penicillin, Peanuts, Latex"
+              />
+            </Field>
           </div>
           <div className="sm:col-span-2">
-            <label className={labelCls}>Medical History</label>
-            <textarea
-              rows={3}
-              className={`${inputCls} mt-1.5 resize-none`}
-              value={form.medicalHistory}
-              onChange={(e) => setForm({ ...form, medicalHistory: e.target.value })}
-              placeholder="Previous surgeries, chronic conditions, etc."
-            />
+            <Field label="Medical History">
+              <textarea
+                rows={3}
+                className={`${inputCls} resize-none`}
+                value={form.medicalHistory}
+                onChange={(e) =>
+                  setForm({ ...form, medicalHistory: e.target.value })
+                }
+                placeholder="Previous surgeries, chronic conditions, etc."
+              />
+            </Field>
           </div>
         </div>
 
-        {/* Insurance */}
-        <h2 className="mb-4 mt-8 text-sm font-semibold uppercase tracking-wider text-primary">
-          Insurance
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>Provider</label>
-            <input
-              className={`${inputCls} mt-1.5`}
-              value={form.insuranceProvider}
-              onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })}
-              placeholder="Blue Cross Blue Shield"
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Policy Number</label>
-            <input
-              className={`${inputCls} mt-1.5`}
-              value={form.insurancePolicyNumber}
-              onChange={(e) => setForm({ ...form, insurancePolicyNumber: e.target.value })}
-              placeholder="BCB-123456789"
-            />
-          </div>
-        </div>
-
-        {/* Submit */}
         <div className="mt-8 flex gap-3">
           <button
             type="submit"
             disabled={isSubmitting}
             className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25 disabled:opacity-60"
           >
-            <UserPlus className="size-4" />
-            {isSubmitting ? "Creating..." : "Create Profile"}
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <UserPlus className="size-4" />
+            )}
+            {isSubmitting ? "Creating…" : "Create Profile"}
           </button>
           <button
             type="button"
@@ -647,7 +986,9 @@ function AddPatient({ onBack }: { onBack: () => void }) {
   );
 }
 
-// ─── Patient Detail View ────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// PATIENT DETAIL — with route-to-department quick actions
+// ═════════════════════════════════════════════════════════
 function PatientDetail({
   patientId,
   onBack,
@@ -676,7 +1017,7 @@ function PatientDetail({
   });
 
   const inputCls =
-    "w-full rounded-xl border border-white/40 bg-white/50 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-white/70";
+    "w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-white/6";
   const labelCls = "text-sm font-medium text-foreground";
 
   const handleAddVitals = async (e: React.FormEvent) => {
@@ -684,8 +1025,12 @@ function PatientDetail({
     try {
       await addVitals({
         patientId,
-        temperature: vitalsForm.temperature ? Number(vitalsForm.temperature) : undefined,
-        heartRate: vitalsForm.heartRate ? Number(vitalsForm.heartRate) : undefined,
+        temperature: vitalsForm.temperature
+          ? Number(vitalsForm.temperature)
+          : undefined,
+        heartRate: vitalsForm.heartRate
+          ? Number(vitalsForm.heartRate)
+          : undefined,
         bloodPressureSystolic: vitalsForm.bloodPressureSystolic
           ? Number(vitalsForm.bloodPressureSystolic)
           : undefined,
@@ -705,22 +1050,65 @@ function PatientDetail({
       toast.success("Vitals entry saved.");
       setShowVitalsForm(false);
       setVitalsForm({
-        temperature: "", heartRate: "", bloodPressureSystolic: "",
-        bloodPressureDiastolic: "", respiratoryRate: "", oxygenSaturation: "",
-        weight: "", height: "", notes: "",
+        temperature: "",
+        heartRate: "",
+        bloodPressureSystolic: "",
+        bloodPressureDiastolic: "",
+        respiratoryRate: "",
+        oxygenSaturation: "",
+        weight: "",
+        height: "",
+        notes: "",
       });
     } catch {
-      toast.error("Failed to save vitals entry.");
+      toast.error("Failed to save vitals.");
+    }
+  };
+
+  const handleDeactivate = async () => {
+    try {
+      await deactivate({ patientId });
+      toast.success("Patient profile deactivated.");
+      onBack();
+    } catch {
+      toast.error("Failed to deactivate patient.");
+    }
+  };
+
+  const handleReactivate = async () => {
+    try {
+      await reactivate({ patientId });
+      toast.success("Patient profile reactivated.");
+    } catch {
+      toast.error("Failed to reactivate patient.");
     }
   };
 
   if (!patient) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground font-mono">Loading profile...</p>
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
+
+  const age = patient.dateOfBirth
+    ? Math.floor(
+        (Date.now() - new Date(patient.dateOfBirth).getTime()) /
+          (365.25 * 24 * 60 * 60 * 1000),
+      )
+    : null;
+
+  const infoGrid = [
+    { label: "Date of Birth", value: patient.dateOfBirth || "—" },
+    { label: "Age", value: age !== null ? `${age} years` : "—" },
+    { label: "Card #", value: patient.cardNumber, mono: true },
+    { label: "Medical ID", value: patient.medicalId, mono: true },
+    { label: "Blood Type", value: patient.bloodType },
+    { label: "Phone", value: patient.phone },
+    { label: "Email", value: patient.email || "—" },
+    { label: "Address", value: patient.address || "—" },
+  ];
 
   return (
     <motion.div
@@ -729,66 +1117,43 @@ function PatientDetail({
       exit={{ opacity: 0, x: -20 }}
       className="mx-auto max-w-4xl px-6 py-8"
     >
-      {/* Back + Header */}
+      {/* Header with back + actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             onClick={onBack}
-            className="glass glass-hover rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
+            className="glass glass-hover rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:text-foreground"
           >
             ← Back
           </button>
-          <div className="flex items-center gap-4">
-            <div className="flex size-12 items-center justify-center rounded-xl bg-primary/15 text-lg font-bold text-primary">
-              {patient.firstName[0]}{patient.lastName[0]}
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-base font-bold text-primary">
+              {patient.firstName[0]}
+              {patient.lastName[0]}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-foreground">
                 {patient.firstName} {patient.lastName}
               </h1>
-              <div className="flex items-center gap-3">
-                <span className="glass rounded-full px-3 py-0.5 text-xs font-medium text-primary">
-                  {patient.medicalId}
-                </span>
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    patient.isActive
-                      ? "bg-emerald-500/10 text-emerald-600"
-                      : "bg-red-500/10 text-red-600"
-                  }`}
-                >
-                  {patient.isActive ? "Active" : "Inactive"}
-                </span>
-              </div>
+              <p className="text-xs text-muted-foreground font-mono">
+                {patient.medicalId} · {patient.cardNumber}
+              </p>
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => onNewOrder(patientId)}
-            className="glass glass-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary transition-all"
-          >
-            <FileText className="size-4" />
-            New Order
-          </button>
+
+        <div className="flex items-center gap-2">
           {patient.isActive ? (
             <button
-              onClick={async () => {
-                await deactivate({ patientId });
-                toast.success("Patient profile deactivated.");
-                onBack();
-              }}
-              className="glass glass-hover rounded-xl px-4 py-2 text-sm font-medium text-red-500 transition-all hover:bg-red-500/10"
+              onClick={handleDeactivate}
+              className="glass glass-hover rounded-lg px-4 py-2 text-xs font-medium text-destructive transition-all"
             >
               Deactivate
             </button>
           ) : (
             <button
-              onClick={async () => {
-                await reactivate({ patientId });
-                toast.success("Patient profile reactivated.");
-              }}
-              className="glass glass-hover rounded-xl px-4 py-2 text-sm font-medium text-emerald-500 transition-all hover:bg-emerald-500/10"
+              onClick={handleReactivate}
+              className="glass glass-hover rounded-lg px-4 py-2 text-xs font-medium text-emerald-400 transition-all"
             >
               Reactivate
             </button>
@@ -796,249 +1161,243 @@ function PatientDetail({
         </div>
       </div>
 
-      {/* Info Grid */}
-      <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {[
-          { label: "Card Number", value: patient.cardNumber },
-          { label: "Date of Birth", value: patient.dateOfBirth || "—" },
-          { label: "Age", value: patient.dateOfBirth ? `${Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} years` : "—" }, // eslint-disable-line react-hooks/purity
-          { label: "Gender", value: patient.gender },
-          { label: "Blood Type", value: patient.bloodType },
-          { label: "Phone", value: patient.phone },
-          { label: "Email", value: patient.email || "—" },
-          { label: "Address", value: patient.address || "—" },
-          { label: "Insurance", value: patient.insuranceProvider || "—" },
-          { label: "Policy #", value: patient.insurancePolicyNumber || "—" },
-        ].map((item) => (
-          <div key={item.label} className="glass glass-strong rounded-xl p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {item.label}
-            </p>
-            <p className="mt-1 text-sm font-medium text-foreground">
-              {item.value}
-            </p>
-          </div>
-        ))}
+      {/* Quick route actions — only visible to doctors */}
+      <div className="mt-6">
+        <p className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Route to Department
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {ROUTE_ACTIONS.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => onNewOrder(patientId)}
+              className={`glass glass-hover group flex items-center gap-3 rounded-xl p-4 transition-all hover:ring-1 ${action.ring}`}
+            >
+              <div
+                className={`flex size-10 shrink-0 items-center justify-center rounded-xl ${action.bg} transition-transform group-hover:scale-110`}
+              >
+                <action.icon className={`size-5 ${action.color}`} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-medium text-foreground">
+                  {action.label}
+                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  Create order <ArrowLeftRight className="size-3" />
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Emergency Contact */}
-      {(patient.emergencyContactName || patient.emergencyContactPhone) && (
-        <div className="mt-5">
-          <div className="glass glass-strong rounded-xl p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-red-500">
-              Emergency Contact
-            </p>
-            <div className="mt-2 flex gap-6">
-              <div>
-                <p className="text-xs text-muted-foreground">Name</p>
-                <p className="text-sm font-medium text-foreground">
-                  {patient.emergencyContactName || "—"}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Phone</p>
-                <p className="text-sm font-medium text-foreground">
-                  {patient.emergencyContactPhone || "—"}
-                </p>
-              </div>
+      {/* Info grid */}
+      <div className="glass glass-strong mt-6 rounded-xl p-6">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {infoGrid.map((item) => (
+            <div key={item.label}>
+              <p className="text-xs text-muted-foreground">{item.label}</p>
+              <p
+                className={`mt-0.5 text-sm font-medium text-foreground ${item.mono ? "font-mono" : ""}`}
+              >
+                {item.value}
+              </p>
             </div>
-          </div>
+          ))}
         </div>
-      )}
 
-      {/* Allergies */}
-      {patient.allergies && patient.allergies.length > 0 && (
-        <div className="mt-5">
-          <div className="glass glass-strong rounded-xl p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-amber-500">
-              Allergies
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
+        {/* Allergies */}
+        {patient.allergies && patient.allergies.length > 0 && (
+          <div className="mt-4 border-t border-white/5 pt-4">
+            <p className="text-xs text-muted-foreground mb-2">Allergies</p>
+            <div className="flex flex-wrap gap-2">
               {patient.allergies.map((a) => (
                 <span
                   key={a}
-                  className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600"
+                  className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400"
                 >
                   {a}
                 </span>
               ))}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Medical History */}
-      {patient.medicalHistory && (
-        <div className="mt-5">
-          <div className="glass glass-strong rounded-xl p-5">
-            <p className="text-xs font-semibold uppercase tracking-wider text-violet-500">
+        {/* Medical history */}
+        {patient.medicalHistory && (
+          <div className="mt-4 border-t border-white/5 pt-4">
+            <p className="text-xs text-muted-foreground mb-1">
               Medical History
             </p>
-            <p className="mt-2 text-sm text-foreground leading-relaxed">
-              {patient.medicalHistory}
-            </p>
+            <p className="text-sm text-foreground">{patient.medicalHistory}</p>
           </div>
-        </div>
-      )}
-
-      {/* ─── Vitals Section ───────────────────────────── */}
-      <div className="mt-8 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-foreground">Vitals History</h2>
-        <button
-          onClick={() => setShowVitalsForm(!showVitalsForm)}
-          className="glass glass-hover flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-primary transition-all"
-        >
-          <Activity className="size-4" />
-          {showVitalsForm ? "Cancel" : "Record Vitals"}
-        </button>
+        )}
       </div>
 
-      {/* Vitals Form */}
-      <AnimatePresence>
-        {showVitalsForm && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
+      {/* Vitals */}
+      <div className="mt-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            Vitals History
+          </h2>
+          <button
+            onClick={() => setShowVitalsForm(!showVitalsForm)}
+            className="glass glass-hover flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium text-primary transition-all"
           >
-            <form
+            <Plus className="size-3.5" />
+            Record Vitals
+          </button>
+        </div>
+
+        {/* Vitals form */}
+        <AnimatePresence>
+          {showVitalsForm && (
+            <motion.form
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
               onSubmit={handleAddVitals}
-              className="glass glass-strong mt-4 rounded-xl p-6"
+              className="glass glass-strong mt-3 overflow-hidden rounded-xl p-6"
             >
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <label className={labelCls}>Temp (°F)</label>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="Temperature (°F)">
                   <input
                     type="number"
                     step="0.1"
-                    className={`${inputCls} mt-1.5`}
+                    className={inputCls}
                     value={vitalsForm.temperature}
                     onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, temperature: e.target.value })
+                      setVitalsForm({
+                        ...vitalsForm,
+                        temperature: e.target.value,
+                      })
                     }
                     placeholder="98.6"
                   />
-                </div>
-                <div>
-                  <label className={labelCls}>Heart Rate (bpm)</label>
+                </Field>
+                <Field label="Heart Rate (bpm)">
                   <input
                     type="number"
-                    className={`${inputCls} mt-1.5`}
+                    className={inputCls}
                     value={vitalsForm.heartRate}
                     onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, heartRate: e.target.value })
+                      setVitalsForm({
+                        ...vitalsForm,
+                        heartRate: e.target.value,
+                      })
                     }
                     placeholder="72"
                   />
-                </div>
-                <div>
-                  <label className={labelCls}>BP Systolic</label>
+                </Field>
+                <Field label="Blood Pressure">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      className={inputCls}
+                      value={vitalsForm.bloodPressureSystolic}
+                      onChange={(e) =>
+                        setVitalsForm({
+                          ...vitalsForm,
+                          bloodPressureSystolic: e.target.value,
+                        })
+                      }
+                      placeholder="120"
+                    />
+                    <span className="text-muted-foreground">/</span>
+                    <input
+                      type="number"
+                      className={inputCls}
+                      value={vitalsForm.bloodPressureDiastolic}
+                      onChange={(e) =>
+                        setVitalsForm({
+                          ...vitalsForm,
+                          bloodPressureDiastolic: e.target.value,
+                        })
+                      }
+                      placeholder="80"
+                    />
+                  </div>
+                </Field>
+                <Field label="Resp. Rate">
                   <input
                     type="number"
-                    className={`${inputCls} mt-1.5`}
-                    value={vitalsForm.bloodPressureSystolic}
-                    onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, bloodPressureSystolic: e.target.value })
-                    }
-                    placeholder="120"
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>BP Diastolic</label>
-                  <input
-                    type="number"
-                    className={`${inputCls} mt-1.5`}
-                    value={vitalsForm.bloodPressureDiastolic}
-                    onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, bloodPressureDiastolic: e.target.value })
-                    }
-                    placeholder="80"
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Resp Rate</label>
-                  <input
-                    type="number"
-                    className={`${inputCls} mt-1.5`}
+                    className={inputCls}
                     value={vitalsForm.respiratoryRate}
                     onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, respiratoryRate: e.target.value })
+                      setVitalsForm({
+                        ...vitalsForm,
+                        respiratoryRate: e.target.value,
+                      })
                     }
                     placeholder="16"
                   />
-                </div>
-                <div>
-                  <label className={labelCls}>SpO₂ (%)</label>
-                  <input
-                    type="number"
-                    className={`${inputCls} mt-1.5`}
-                    value={vitalsForm.oxygenSaturation}
-                    onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, oxygenSaturation: e.target.value })
-                    }
-                    placeholder="98"
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Weight (kg)</label>
+                </Field>
+                <Field label="O₂ Saturation (%)">
                   <input
                     type="number"
                     step="0.1"
-                    className={`${inputCls} mt-1.5`}
+                    className={inputCls}
+                    value={vitalsForm.oxygenSaturation}
+                    onChange={(e) =>
+                      setVitalsForm({
+                        ...vitalsForm,
+                        oxygenSaturation: e.target.value,
+                      })
+                    }
+                    placeholder="98"
+                  />
+                </Field>
+                <Field label="Weight (kg)">
+                  <input
+                    type="number"
+                    step="0.1"
+                    className={inputCls}
                     value={vitalsForm.weight}
                     onChange={(e) =>
                       setVitalsForm({ ...vitalsForm, weight: e.target.value })
                     }
                     placeholder="70"
                   />
-                </div>
-                <div>
-                  <label className={labelCls}>Height (cm)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    className={`${inputCls} mt-1.5`}
-                    value={vitalsForm.height}
+                </Field>
+              </div>
+              <div className="mt-4">
+                <Field label="Notes">
+                  <textarea
+                    rows={2}
+                    className={`${inputCls} resize-none`}
+                    value={vitalsForm.notes}
                     onChange={(e) =>
-                      setVitalsForm({ ...vitalsForm, height: e.target.value })
+                      setVitalsForm({ ...vitalsForm, notes: e.target.value })
                     }
-                    placeholder="175"
+                    placeholder="Any clinical notes…"
                   />
-                </div>
+                </Field>
               </div>
-              <div className="mt-4">
-                <label className={labelCls}>Notes</label>
-                <textarea
-                  rows={2}
-                  className={`${inputCls} mt-1.5 resize-none`}
-                  value={vitalsForm.notes}
-                  onChange={(e) =>
-                    setVitalsForm({ ...vitalsForm, notes: e.target.value })
-                  }
-                  placeholder="Optional observations..."
-                />
-              </div>
-              <div className="mt-4">
+              <div className="mt-4 flex gap-3">
                 <button
                   type="submit"
-                  className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25"
+                  className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/20"
                 >
-                  <Activity className="size-4" />
+                  <Heart className="size-4" />
                   Save Vitals
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setShowVitalsForm(false)}
+                  className="glass glass-hover rounded-xl px-5 py-2 text-sm font-medium text-muted-foreground transition-all"
+                >
+                  Cancel
+                </button>
               </div>
-            </form>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.form>
+          )}
+        </AnimatePresence>
 
-      {/* Vitals Table */}
-      <div className="glass glass-strong mt-4 overflow-hidden rounded-xl">
-        <div className="overflow-x-auto">
+        {/* Vitals table */}
+        <div className="glass glass-strong mt-3 overflow-hidden rounded-xl">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-white/30 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <th className="px-5 py-3">Date</th>
                 <th className="px-5 py-3">Temp</th>
                 <th className="px-5 py-3">HR</th>
@@ -1051,13 +1410,19 @@ function PatientDetail({
             <tbody>
               {vitals === undefined ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-sm text-muted-foreground">
-                    Loading vitals...
+                  <td
+                    colSpan={7}
+                    className="px-5 py-8 text-center text-sm text-muted-foreground"
+                  >
+                    Loading vitals…
                   </td>
                 </tr>
               ) : vitals.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                  <td
+                    colSpan={7}
+                    className="px-5 py-8 text-center text-sm text-muted-foreground"
+                  >
                     No vitals recorded yet.
                   </td>
                 </tr>
@@ -1101,13 +1466,17 @@ function PatientDetail({
   );
 }
 
-// ─── Orders List View ──────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// ORDERS LIST
+// ═════════════════════════════════════════════════════════
 function OrdersList({
   onSelectPatient,
 }: {
   onSelectPatient: (id: Id<"patients">) => void;
 }) {
-  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const allOrders = useQuery(api.orders.listByDepartment, {
+    department: "doctor",
+  });
 
   const departments: Record<string, string> = {
     card_office: "Card Office",
@@ -1156,22 +1525,52 @@ function OrdersList({
               </tr>
             </thead>
             <tbody>
-              {allOrders.length === 0 ? (
+              {allOrders === undefined ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
+                    Loading orders…
+                  </td>
+                </tr>
+              ) : allOrders.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
                     No orders yet. Create one from a patient profile.
                   </td>
                 </tr>
               ) : (
-                allOrders.map((order: any) => (
-                  <tr key={order._id} className="border-b border-white/5 last:border-0">
-                    <td className="px-6 py-4 font-mono text-sm text-primary">{order.orderNumber}</td>
-                    <td className="px-6 py-4 text-sm capitalize text-muted-foreground">{order.type.replace(/_/g, " ")}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{departments[order.fromDepartment] || order.fromDepartment}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{departments[order.toDepartment] || order.toDepartment}</td>
-                    <td className="px-6 py-4 text-sm capitalize text-muted-foreground">{order.priority}</td>
+                allOrders.map((order) => (
+                  <tr
+                    key={order._id}
+                    className="border-b border-white/5 last:border-0"
+                  >
+                    <td className="px-6 py-4 font-mono text-sm text-primary">
+                      {order.orderNumber}
+                    </td>
+                    <td className="px-6 py-4 text-sm capitalize text-muted-foreground">
+                      {order.type.replace(/_/g, " ")}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {departments[order.fromDepartment] ||
+                        order.fromDepartment}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
+                      {departments[order.toDepartment] || order.toDepartment}
+                    </td>
+                    <td className="px-6 py-4 text-sm capitalize text-muted-foreground">
+                      {order.priority}
+                    </td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] || ""}`}>{order.status}</span>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] || ""}`}
+                      >
+                        {order.status}
+                      </span>
                     </td>
                   </tr>
                 ))
@@ -1184,7 +1583,9 @@ function OrdersList({
   );
 }
 
-// ─── New Order Form ────────────────────────────────────
+// ═════════════════════════════════════════════════════════
+// NEW ORDER FORM
+// ═════════════════════════════════════════════════════════
 function NewOrder({
   patientId,
   onBack,
@@ -1231,11 +1632,13 @@ function NewOrder({
         fromDepartment: "doctor",
         toDepartment: form.toDepartment,
         priority: form.priority,
-        items: [{
-          description: form.itemDescription,
-          quantity: form.itemQuantity ? Number(form.itemQuantity) : undefined,
-          notes: form.itemNotes || undefined,
-        }],
+        items: [
+          {
+            description: form.itemDescription,
+            quantity: form.itemQuantity ? Number(form.itemQuantity) : undefined,
+            notes: form.itemNotes || undefined,
+          },
+        ],
         clinicalNotes: form.clinicalNotes || undefined,
       });
       toast.success("Order created and routed.");
@@ -1248,13 +1651,13 @@ function NewOrder({
   };
 
   const inputCls =
-    "w-full rounded-lg border border-white/5 bg-white/5 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-white/8";
+    "w-full rounded-xl border border-white/8 bg-white/4 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none transition-all focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-white/6";
   const labelCls = "text-sm font-medium text-foreground";
 
   if (!patient) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground font-mono">Loading patient...</p>
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -1281,26 +1684,32 @@ function NewOrder({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="glass glass-strong mt-8 rounded-xl p-8">
-        <div className="glass rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/15 text-sm font-bold text-primary">
-              {patient.firstName[0]}{patient.lastName[0]}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{patient.firstName} {patient.lastName}</p>
-              <p className="text-xs text-muted-foreground font-mono">{patient.cardNumber} · {patient.medicalId}</p>
-            </div>
-          </div>
+      {/* Patient context card */}
+      <div className="glass rounded-xl p-4 mt-6 flex items-center gap-4">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-sm font-bold text-primary">
+          {patient.firstName[0]}
+          {patient.lastName[0]}
         </div>
+        <div>
+          <p className="text-sm font-medium text-foreground">
+            {patient.firstName} {patient.lastName}
+          </p>
+          <p className="text-xs text-muted-foreground font-mono">
+            {patient.cardNumber} · {patient.medicalId}
+          </p>
+        </div>
+      </div>
 
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary">Order Details</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="glass glass-strong mt-6 rounded-xl p-8"
+      >
+        <SectionTitle icon={Send} label="Order Details" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className={labelCls}>Order Type *</label>
+          <Field label="Order Type" required>
             <select
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.type}
               onChange={(e) => handleTypeChange(e.target.value)}
             >
@@ -1310,84 +1719,140 @@ function NewOrder({
               <option value="radiology_order">Radiology</option>
               <option value="general">General</option>
             </select>
-          </div>
-          <div>
-            <label className={labelCls}>Priority *</label>
+          </Field>
+          <Field label="Priority" required>
             <select
               required
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.priority}
-              onChange={(e) => setForm({ ...form, priority: e.target.value as typeof form.priority })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  priority: e.target.value as typeof form.priority,
+                })
+              }
             >
               <option value="normal">Normal</option>
               <option value="urgent">Urgent</option>
               <option value="stat">STAT</option>
             </select>
-          </div>
+          </Field>
         </div>
 
-        <h2 className="mb-3 mt-6 text-sm font-semibold uppercase tracking-wider text-primary">Items</h2>
+        <SectionTitle icon={FileText} label="Items" />
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="sm:col-span-2">
-            <label className={labelCls}>Description *</label>
-            <input
-              required
-              className={`${inputCls} mt-1.5`}
-              value={form.itemDescription}
-              onChange={(e) => setForm({ ...form, itemDescription: e.target.value })}
-              placeholder="CBC, Metabolic Panel, Amoxicillin 500mg..."
-            />
+            <Field label="Description" required>
+              <input
+                required
+                className={inputCls}
+                value={form.itemDescription}
+                onChange={(e) =>
+                  setForm({ ...form, itemDescription: e.target.value })
+                }
+                placeholder="CBC, Metabolic Panel, Amoxicillin 500mg…"
+              />
+            </Field>
           </div>
-          <div>
-            <label className={labelCls}>Quantity</label>
+          <Field label="Quantity">
             <input
               type="number"
-              className={`${inputCls} mt-1.5`}
+              className={inputCls}
               value={form.itemQuantity}
-              onChange={(e) => setForm({ ...form, itemQuantity: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, itemQuantity: e.target.value })
+              }
               placeholder="1"
             />
-          </div>
+          </Field>
         </div>
         <div className="mt-4">
-          <label className={labelCls}>Item Notes</label>
-          <input
-            className={`${inputCls} mt-1.5`}
-            value={form.itemNotes}
-            onChange={(e) => setForm({ ...form, itemNotes: e.target.value })}
-            placeholder="Optional instructions for this item"
-          />
+          <Field label="Item Notes">
+            <input
+              className={inputCls}
+              value={form.itemNotes}
+              onChange={(e) =>
+                setForm({ ...form, itemNotes: e.target.value })
+              }
+              placeholder="Optional instructions for this item"
+            />
+          </Field>
         </div>
 
         <div className="mt-6">
-          <label className={labelCls}>Clinical Notes</label>
-          <textarea
-            rows={3}
-            className={`${inputCls} mt-1.5 resize-none`}
-            value={form.clinicalNotes}
-            onChange={(e) => setForm({ ...form, clinicalNotes: e.target.value })}
-            placeholder="Reason for order, relevant history, special instructions..."
-          />
+          <Field label="Clinical Notes">
+            <textarea
+              rows={3}
+              className={`${inputCls} resize-none`}
+              value={form.clinicalNotes}
+              onChange={(e) =>
+                setForm({ ...form, clinicalNotes: e.target.value })
+              }
+              placeholder="Reason for order, relevant history, special instructions…"
+            />
+          </Field>
         </div>
 
         <div className="mt-8 flex gap-3">
           <button
             type="submit"
             disabled={isSubmitting}
-            className="glass glass-strong flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25 disabled:opacity-60"
+            className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 transition-all hover:shadow-lg hover:shadow-primary/25 disabled:opacity-60"
           >
-            <FileText className="size-4" />
-            {isSubmitting ? "Creating..." : "Create & Route Order"}
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            {isSubmitting ? "Creating…" : "Create & Route Order"}
           </button>
           <button
             type="button"
             onClick={onBack}
-            className="glass glass-hover rounded-lg px-6 py-2.5 text-sm font-medium text-muted-foreground transition-all"
+            className="glass glass-hover rounded-xl px-6 py-2.5 text-sm font-medium text-muted-foreground transition-all"
           >
             Cancel
           </button>
         </div>
       </form>
     </motion.div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════
+// SHARED UI HELPERS
+// ═════════════════════════════════════════════════════════
+function SectionTitle({
+  icon: Icon,
+  label,
+}: {
+  icon: React.FC<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-primary">
+      <Icon className="size-4" />
+      {label}
+    </h2>
+  );
+}
+
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="text-sm font-medium text-foreground">
+        {label}
+        {required && <span className="text-destructive ml-0.5">*</span>}
+      </label>
+      <div className="mt-1.5">{children}</div>
+    </div>
   );
 }
