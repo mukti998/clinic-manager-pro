@@ -58,7 +58,7 @@ export default function TopHeader() {
     nurse: "badge-success",
     receptionist: "badge-warning",
     pharmacist: "badge-primary",
-    lab technician: "badge-neutral",
+    "lab technician": "badge-neutral",
   };
 
   return (
