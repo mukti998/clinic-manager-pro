@@ -6,14 +6,30 @@ import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router";
+import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router";
 import "./index.css";
 
 // Lazy load route components for better code splitting
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
-const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+
+// Dashboard layout + pages (all lazy)
+const DashboardLayout = lazy(() => import("./components/dashboard/DashboardLayout.tsx"));
+const HomeView = lazy(() => import("./pages/dashboard/HomeView.tsx"));
+const RegisterPatient = lazy(() => import("./pages/dashboard/RegisterPatient.tsx"));
+const ReceptionistQueue = lazy(() => import("./pages/dashboard/ReceptionistQueue.tsx"));
+const VisitDetail = lazy(() => import("./pages/dashboard/VisitDetail.tsx"));
+const CheckoutView = lazy(() => import("./pages/dashboard/CheckoutView.tsx"));
+const DoctorQueue = lazy(() => import("./pages/dashboard/DoctorQueue.tsx"));
+const DoctorConsult = lazy(() => import("./pages/dashboard/DoctorConsult.tsx"));
+const LabQueueView = lazy(() => import("./pages/dashboard/LabQueueView.tsx"));
+const PharmacyQueueView = lazy(() => import("./pages/dashboard/PharmacyQueueView.tsx"));
+const NurseAssignments = lazy(() => import("./pages/dashboard/NurseAssignments.tsx"));
+const VitalsEntry = lazy(() => import("./pages/dashboard/VitalsEntry.tsx"));
+const PatientListView = lazy(() => import("./pages/dashboard/PatientListView.tsx"));
+const AdminFinancial = lazy(() => import("./pages/dashboard/AdminFinancial.tsx"));
+const AdminStaff = lazy(() => import("./pages/dashboard/AdminStaff.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -82,8 +98,6 @@ class RootErrorBoundary extends React.Component<
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
-
-
 function RouteSyncer() {
   const location = useLocation();
   useEffect(() => {
@@ -107,7 +121,6 @@ function RouteSyncer() {
   return null;
 }
 
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RootErrorBoundary>
@@ -124,14 +137,32 @@ createRoot(document.getElementById("root")!).render(
                 path="/auth"
                 element={<AuthPage redirectAfterAuth="/dashboard" />}
               />
+
+              {/* Dashboard — protected nested routes */}
               <Route
                 path="/dashboard"
                 element={
                   <RequireAuth>
-                    <Dashboard />
+                    <DashboardLayout />
                   </RequireAuth>
                 }
-              />
+              >
+                <Route index element={<HomeView />} />
+                <Route path="register" element={<RegisterPatient />} />
+                <Route path="queue" element={<ReceptionistQueue />} />
+                <Route path="queue/:visitId" element={<VisitDetail />} />
+                <Route path="checkout" element={<CheckoutView />} />
+                <Route path="doctor-queue" element={<DoctorQueue />} />
+                <Route path="doctor-queue/:visitId" element={<DoctorConsult />} />
+                <Route path="lab-queue" element={<LabQueueView />} />
+                <Route path="pharmacy-queue" element={<PharmacyQueueView />} />
+                <Route path="nurse-assignments" element={<NurseAssignments />} />
+                <Route path="vitals" element={<VitalsEntry />} />
+                <Route path="patients" element={<PatientListView />} />
+                <Route path="admin-reports" element={<AdminFinancial />} />
+                <Route path="admin-staff" element={<AdminStaff />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
