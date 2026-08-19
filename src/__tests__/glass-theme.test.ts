@@ -14,7 +14,7 @@ describe("Glassmorphism theme CSS", () => {
   it("contains the glass utility class with dark translucent background", () => {
     expect(cssContent).toContain(".glass {");
     expect(cssContent).toContain("backdrop-filter: blur(16px)");
-    expect(cssContent).toContain("rgba(255, 255, 255, 0.04)");
+    expect(cssContent).toContain("rgba(255, 255, 255, 0.035)");
   });
 
   it("contains the glass-strong utility class", () => {
@@ -32,21 +32,21 @@ describe("Glassmorphism theme CSS", () => {
   });
 
   it("uses a dark background color (oklch with low lightness)", () => {
-    // Background should be dark: oklch with L around 0.13
+    // Background should be dark: oklch with L around 0.11-0.13
     expect(cssContent).toMatch(/--background:\s*oklch\(0\.1[0-9]/);
   });
 
   it("uses a cool blue primary color", () => {
-    expect(cssContent).toMatch(/--primary:\s*oklch\(0\.72\s+0\.14\s+250\)/);
+    expect(cssContent).toMatch(/--primary:\s*oklch\(0\.70\s+0\.16\s+240\)/);
   });
 
   it("uses translucent dark card background", () => {
-    expect(cssContent).toMatch(/--card:\s*oklch\(0\.17\s+0\.018\s+260\s*\/\s*70%\)/);
+    expect(cssContent).toMatch(/--card:\s*oklch\(0\.15\s+0\.016\s+255/);
   });
 
   it("contains the background gradient mesh", () => {
     expect(cssContent).toContain(".bg-gradient-mesh {");
-    expect(cssContent).toContain("radial-gradient(ellipse at 20% 15%");
+    expect(cssContent).toContain("radial-gradient(ellipse at 15% 10%");
   });
 
   it("contains the dot pattern background", () => {
@@ -60,10 +60,10 @@ describe("Glassmorphism theme CSS", () => {
   });
 
   it("has subtle inset highlights for glass depth", () => {
-    expect(cssContent).toContain("inset 0 1px 0 rgba(255, 255, 255, 0.05)");
+    expect(cssContent).toContain("inset 0 1px 0 rgba(255, 255, 255, 0.04)");
   });
 
   it("uses dark border color", () => {
-    expect(cssContent).toMatch(/--border:\s*oklch\(0\.28\s+0\.015\s+260\)/);
+    expect(cssContent).toMatch(/--border:\s*oklch\(0\.25\s+0\.012\s+255\)/);
   });
 });

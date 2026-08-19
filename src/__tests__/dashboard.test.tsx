@@ -24,6 +24,12 @@ vi.mock("react-router", () => ({
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useLocation: vi.fn(() => ({ pathname: "/dashboard" })),
   useSearchParams: vi.fn(() => [new URLSearchParams(), vi.fn()]),
+  NavLink: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string | Function }) => (
+    <a href={to} className={typeof className === "function" ? "sidebar-link active" : className}>
+      {children}
+    </a>
+  ),
+  Outlet: () => <div data-testid="outlet" />,
 }));
 
 vi.mock("sonner", () => ({
@@ -41,10 +47,11 @@ vi.mock("@/convex/_generated/api", () => ({
       deactivate: "patients.deactivate",
       reactivate: "patients.reactivate",
     },
-    vitals: { add: "vitals.add" },
+    vitals: { add: "vitals.add", getHistory: "vitals.getHistory", getLatest: "vitals.getLatest" },
     orders: {
       create: "orders.create",
       listByDepartment: "orders.listByDepartment",
+      getStats: "orders.getStats",
     },
     visits: {
       create: "visits.create",
@@ -63,6 +70,8 @@ vi.mock("@/convex/_generated/api", () => ({
       dispense: "prescriptions.dispense",
       reject: "prescriptions.reject",
       getPharmacyQueue: "prescriptions.getPharmacyQueue",
+      listByStatus: "prescriptions.listByStatus",
+      listByVisit: "prescriptions.listByVisit",
     },
     lab: {
       create: "lab.create",
@@ -72,18 +81,33 @@ vi.mock("@/convex/_generated/api", () => ({
       reject: "lab.reject",
       getLabQueue: "lab.getLabQueue",
       getPendingCount: "lab.getPendingCount",
+      getByVisit: "lab.getByVisit",
     },
     billing: {
       processPayment: "billing.processPayment",
       createInvoice: "billing.createInvoice",
       markInvoicePaid: "billing.markInvoicePaid",
       getTodayRevenue: "billing.getTodayRevenue",
+      getTotalRevenue: "billing.getTotalRevenue",
+      getRevenueByRange: "billing.getRevenueByRange",
+      getRecentPayments: "billing.getRecentPayments",
+      getDailyRevenueChart: "billing.getDailyRevenueChart",
+      getDepartmentSummary: "billing.getDepartmentSummary",
+      getAllInvoices: "billing.getAllInvoices",
     },
     staff: {
       listByDepartment: "staff.listByDepartment",
       listActive: "staff.listActive",
       getCount: "staff.getCount",
       getByRole: "staff.getByRole",
+    },
+    users: {
+      createUser: "users.createUser",
+      currentUser: "users.currentUser",
+      listAll: "users.listAll",
+      updateRole: "users.updateRole",
+      deactivateUser: "users.deactivateUser",
+      getStats: "users.getStats",
     },
   },
 }));
@@ -116,48 +140,62 @@ function filterDomProps(props: Record<string, unknown>) {
   return dom;
 }
 
-import Dashboard from "../pages/Dashboard";
+// Import the Sidebar component directly — it contains branding, nav, and user section
+import Sidebar from "@/components/dashboard/Sidebar";
 
-describe("Dashboard", () => {
+describe("Sidebar", () => {
   it("renders the sidebar branding", () => {
-    render(<Dashboard />);
-    expect(screen.getByText("rayan")).toBeTruthy();
+    render(<Sidebar />);
+    expect(screen.getByText("Rayan")).toBeTruthy();
   });
 
   it("renders navigation items for doctor role", () => {
-    render(<Dashboard />);
+    render(<Sidebar />);
     expect(screen.getByText("Overview")).toBeTruthy();
     expect(screen.getByText("My Queue")).toBeTruthy();
-    expect(screen.getByText("Patients")).toBeTruthy();
+    expect(screen.getByText("Patient Records")).toBeTruthy();
   });
 
   it("displays user name from auth", () => {
-    render(<Dashboard />);
+    render(<Sidebar />);
     expect(screen.getByText("Dr. Sarah Chen")).toBeTruthy();
   });
 
-  it("shows doctor role badge", () => {
-    render(<Dashboard />);
+  it("shows doctor role in sidebar", () => {
+    render(<Sidebar />);
     expect(screen.getAllByText("doctor").length).toBeGreaterThan(0);
   });
 
-  it("shows greeting with user name", () => {
-    render(<Dashboard />);
-    expect(screen.getByText(/Sarah/)).toBeTruthy();
+  it("shows user role label", () => {
+    render(<Sidebar />);
+    // The sidebar shows the role or department name for the user
+    expect(screen.getByText("doctor")).toBeTruthy();
   });
 
   it("renders sign out button", () => {
-    render(<Dashboard />);
+    render(<Sidebar />);
     expect(screen.getByTitle("Sign out")).toBeTruthy();
+  });
+});
+
+// Test HomeView separately
+import HomeView from "@/pages/dashboard/HomeView";
+
+describe("HomeView", () => {
+  it("shows greeting with user name", () => {
+    render(<HomeView />);
+    // The greeting uses first name only, split across whitespace
+    expect(screen.getByText(/Good day/)).toBeTruthy();
+    expect(screen.getByText(/Dr\./)).toBeTruthy();
   });
 
   it("shows send to department section for doctors", () => {
-    render(<Dashboard />);
+    render(<HomeView />);
     expect(screen.getByText("Send to Department")).toBeTruthy();
   });
 
   it("shows lab and pharmacy quick route actions", () => {
-    render(<Dashboard />);
+    render(<HomeView />);
     expect(screen.getAllByText("Laboratory").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Pharmacy").length).toBeGreaterThan(0);
   });
