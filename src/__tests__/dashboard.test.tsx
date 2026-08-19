@@ -189,14 +189,14 @@ describe("HomeView", () => {
     expect(screen.getByText(/Dr\./)).toBeTruthy();
   });
 
-  it("shows send to department section for doctors", () => {
+  it("shows quick actions section for doctors", () => {
     render(<HomeView />);
-    expect(screen.getByText("Send to Department")).toBeTruthy();
+    expect(screen.getByText("Quick Actions")).toBeTruthy();
   });
 
-  it("shows lab and pharmacy quick route actions", () => {
+  it("shows doctor-specific action items", () => {
     render(<HomeView />);
-    expect(screen.getAllByText("Laboratory").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Pharmacy").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("My Queue").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Patient Records").length).toBeGreaterThan(0);
   });
 });
