@@ -10,6 +10,7 @@ import AuthPage from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import { RequireAuth } from "@/components/RequireAuth";
+import { ConvexReactClient } from "convex/react";
 import { isConvexConfigured, enableDemoMode } from "@/lib/demo-data";
 import { DemoConvexClient } from "@/lib/demo-convex-client";
 
@@ -44,7 +45,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 let convexClient: any;
 
 if (isConvexConfigured()) {
-  const { ConvexReactClient } = require("convex/react");
   convexClient = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 } else {
   enableDemoMode();
