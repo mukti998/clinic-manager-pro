@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
-import { Toaster } from "sonner";
 import "./index.css";
 
 import Landing from "./pages/Landing.tsx";
@@ -10,7 +9,6 @@ import AuthPage from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import { RequireAuth } from "@/components/RequireAuth";
-import { ConvexReactClient } from "convex/react";
 import { isConvexConfigured, enableDemoMode } from "@/lib/demo-data";
 import { DemoConvexClient } from "@/lib/demo-convex-client";
 
@@ -41,16 +39,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
   }
 }
 
-// ─── Create Convex client (real or demo) ─────────────────
-let convexClient: any;
-
-if (isConvexConfigured()) {
-  convexClient = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
-} else {
-  enableDemoMode();
-  convexClient = new DemoConvexClient();
-}
-
 // ─── App Routes ──────────────────────────────────────────
 function AppRoutes() {
   return (
@@ -65,14 +53,36 @@ function AppRoutes() {
   );
 }
 
-// ─── Render ──────────────────────────────────────────────
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <ConvexAuthProvider client={convexClient}>
-        <AppRoutes />
-      </ConvexAuthProvider>
-      <Toaster theme="dark" position="top-right" />
-    </ErrorBoundary>
-  </StrictMode>,
-);
+// ─── Boot: Dynamic import avoids CJS require() crash ────
+// Vite/Rollup converts static `import { ConvexReactClient } from "convex/react"`
+// into a require() call in the browser bundle. Dynamic import keeps it as ESM.
+async function boot() {
+  let convexClient: any;
+
+  if (isConvexConfigured()) {
+    try {
+      const url = import.meta.env.VITE_CONVEX_URL as string;
+      const mod = await import("convex/react");
+      convexClient = new mod.ConvexReactClient(url);
+    } catch (err) {
+      console.warn("Convex load failed, entering demo mode:", err);
+      enableDemoMode();
+      convexClient = new DemoConvexClient();
+    }
+  } else {
+    enableDemoMode();
+    convexClient = new DemoConvexClient();
+  }
+
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <ConvexAuthProvider client={convexClient}>
+          <AppRoutes />
+        </ConvexAuthProvider>
+      </ErrorBoundary>
+    </StrictMode>,
+  );
+}
+
+boot();
