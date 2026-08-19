@@ -1,22 +1,18 @@
-import { StrictMode, useEffect } from "react";
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
-import { Toaster } from "@/components/ui/sonner";
-import { RequireAuth } from "@/components/RequireAuth";
 import "./index.css";
 
 import Landing from "./pages/Landing.tsx";
 import AuthPage from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
+import { RequireAuth } from "@/components/RequireAuth";
 
 function RouteSyncer() {
   const location = useLocation();
-  useEffect(() => {
-    window.parent.postMessage({ type: "iframe-route-change", path: location.pathname }, "*");
-  }, [location.pathname]);
   return null;
 }
 
@@ -40,7 +36,6 @@ createRoot(document.getElementById("root")!).render(
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <Toaster />
       </BrowserRouter>
     </ConvexAuthProvider>
   </StrictMode>,
