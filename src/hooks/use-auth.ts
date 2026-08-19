@@ -1,7 +1,7 @@
 import { api } from "@/convex/_generated/api";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth, useQuery } from "convex/react";
-import { isDemoMode, isConvexConfigured, DEMO_USER, enableDemoMode } from "@/lib/demo-data";
+import { isDemoMode, isConvexConfigured, getDemoUser, enableDemoMode } from "@/lib/demo-data";
 
 export function useAuth() {
   // Auto-enable demo mode if Convex is not configured
@@ -16,12 +16,13 @@ export function useAuth() {
 
   const demoMode = isDemoMode();
 
-  // In demo mode, override with demo data
+  // In demo mode, use the dynamically selected role + name
   if (demoMode) {
+    const demoUser = getDemoUser();
     return {
       isLoading: false,
       isAuthenticated: true,
-      user: DEMO_USER,
+      user: demoUser,
       signIn: async () => ({ signingIn: true }),
       signOut: async () => {},
     };
