@@ -1,44 +1,33 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
-import { RequireAuth } from "@/components/RequireAuth";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
-import React, { StrictMode, useEffect, lazy, Suspense } from "react";
+import React, { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 
-// Lazy load route components for better code splitting
-const Landing = lazy(() => import("./pages/Landing.tsx"));
-const AuthPage = lazy(() => import("./pages/Auth.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+import { RequireAuth } from "@/components/RequireAuth";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
-// Dashboard layout + pages (all lazy)
-const DashboardLayout = lazy(() => import("./components/dashboard/DashboardLayout.tsx"));
-const HomeView = lazy(() => import("./pages/dashboard/HomeView.tsx"));
-const RegisterPatient = lazy(() => import("./pages/dashboard/RegisterPatient.tsx"));
-const ReceptionistQueue = lazy(() => import("./pages/dashboard/ReceptionistQueue.tsx"));
-const VisitDetail = lazy(() => import("./pages/dashboard/VisitDetail.tsx"));
-const CheckoutView = lazy(() => import("./pages/dashboard/CheckoutView.tsx"));
-const DoctorQueue = lazy(() => import("./pages/dashboard/DoctorQueue.tsx"));
-const DoctorConsult = lazy(() => import("./pages/dashboard/DoctorConsult.tsx"));
-const LabQueueView = lazy(() => import("./pages/dashboard/LabQueueView.tsx"));
-const PharmacyQueueView = lazy(() => import("./pages/dashboard/PharmacyQueueView.tsx"));
-const NurseAssignments = lazy(() => import("./pages/dashboard/NurseAssignments.tsx"));
-const VitalsEntry = lazy(() => import("./pages/dashboard/VitalsEntry.tsx"));
-const PatientListView = lazy(() => import("./pages/dashboard/PatientListView.tsx"));
-const AdminFinancial = lazy(() => import("./pages/dashboard/AdminFinancial.tsx"));
-const AdminStaff = lazy(() => import("./pages/dashboard/AdminStaff.tsx"));
-
-// Simple loading fallback for route transitions
-function RouteLoading() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">Loading...</div>
-    </div>
-  );
-}
+import Landing from "./pages/Landing";
+import AuthPage from "./pages/Auth";
+import NotFound from "./pages/NotFound";
+import HomeView from "./pages/dashboard/HomeView";
+import RegisterPatient from "./pages/dashboard/RegisterPatient";
+import ReceptionistQueue from "./pages/dashboard/ReceptionistQueue";
+import VisitDetail from "./pages/dashboard/VisitDetail";
+import CheckoutView from "./pages/dashboard/CheckoutView";
+import DoctorQueue from "./pages/dashboard/DoctorQueue";
+import DoctorConsult from "./pages/dashboard/DoctorConsult";
+import LabQueueView from "./pages/dashboard/LabQueueView";
+import PharmacyQueueView from "./pages/dashboard/PharmacyQueueView";
+import NurseAssignments from "./pages/dashboard/NurseAssignments";
+import VitalsEntry from "./pages/dashboard/VitalsEntry";
+import PatientListView from "./pages/dashboard/PatientListView";
+import AdminFinancial from "./pages/dashboard/AdminFinancial";
+import AdminStaff from "./pages/dashboard/AdminStaff";
 
 /** Silent error boundary — if VlyToolbar crashes it renders nothing instead of
  *  crashing the whole app (e.g. hook errors in WebContainer environment). */
@@ -130,37 +119,35 @@ createRoot(document.getElementById("root")!).render(
       <ConvexAuthProvider client={convex}>
         <BrowserRouter>
           <RouteSyncer />
-          <Suspense fallback={<RouteLoading />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route
-                path="/auth"
-                element={<AuthPage redirectAfterAuth="/dashboard" />}
-              />
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route
+              path="/auth"
+              element={<AuthPage redirectAfterAuth="/dashboard" />}
+            />
 
-              {/* Dashboard — protected nested routes */}
-              <Route path="/dashboard" element={<RequireAuth />}>
-                <Route element={<DashboardLayout />}>
-                  <Route index element={<HomeView />} />
-                  <Route path="register" element={<RegisterPatient />} />
-                  <Route path="queue" element={<ReceptionistQueue />} />
-                  <Route path="queue/:visitId" element={<VisitDetail />} />
-                  <Route path="checkout" element={<CheckoutView />} />
-                  <Route path="doctor-queue" element={<DoctorQueue />} />
-                  <Route path="doctor-queue/:visitId" element={<DoctorConsult />} />
-                  <Route path="lab-queue" element={<LabQueueView />} />
-                  <Route path="pharmacy-queue" element={<PharmacyQueueView />} />
-                  <Route path="nurse-assignments" element={<NurseAssignments />} />
-                  <Route path="vitals" element={<VitalsEntry />} />
-                  <Route path="patients" element={<PatientListView />} />
-                  <Route path="admin-reports" element={<AdminFinancial />} />
-                  <Route path="admin-staff" element={<AdminStaff />} />
-                </Route>
+            {/* Dashboard — auth guard, then layout, then pages */}
+            <Route path="/dashboard" element={<RequireAuth />}>
+              <Route element={<DashboardLayout />}>
+                <Route index element={<HomeView />} />
+                <Route path="register" element={<RegisterPatient />} />
+                <Route path="queue" element={<ReceptionistQueue />} />
+                <Route path="queue/:visitId" element={<VisitDetail />} />
+                <Route path="checkout" element={<CheckoutView />} />
+                <Route path="doctor-queue" element={<DoctorQueue />} />
+                <Route path="doctor-queue/:visitId" element={<DoctorConsult />} />
+                <Route path="lab-queue" element={<LabQueueView />} />
+                <Route path="pharmacy-queue" element={<PharmacyQueueView />} />
+                <Route path="nurse-assignments" element={<NurseAssignments />} />
+                <Route path="vitals" element={<VitalsEntry />} />
+                <Route path="patients" element={<PatientListView />} />
+                <Route path="admin-reports" element={<AdminFinancial />} />
+                <Route path="admin-staff" element={<AdminStaff />} />
               </Route>
+            </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
         <Toaster />
       </ConvexAuthProvider>
