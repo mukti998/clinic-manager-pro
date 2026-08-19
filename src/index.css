@@ -42,40 +42,40 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Dark Glassmorphism Theme — Technical / Developer-facing */
+/* Hospital System — Professional Dark Theme */
 :root {
   --radius: 0.75rem;
-  --background: oklch(0.13 0.015 260);
-  --foreground: oklch(0.93 0.01 250);
-  --card: oklch(0.17 0.018 260 / 70%);
-  --card-foreground: oklch(0.93 0.01 250);
-  --popover: oklch(0.16 0.016 260 / 80%);
-  --popover-foreground: oklch(0.93 0.01 250);
-  --primary: oklch(0.72 0.14 250);
-  --primary-foreground: oklch(0.13 0.015 260);
-  --secondary: oklch(0.22 0.015 260);
-  --secondary-foreground: oklch(0.85 0.01 250);
-  --muted: oklch(0.20 0.012 260);
-  --muted-foreground: oklch(0.60 0.015 250);
-  --accent: oklch(0.22 0.02 260);
-  --accent-foreground: oklch(0.85 0.01 250);
-  --destructive: oklch(0.60 0.20 25);
-  --border: oklch(0.28 0.015 260);
-  --input: oklch(0.24 0.015 260);
-  --ring: oklch(0.72 0.14 250);
-  --chart-1: oklch(0.72 0.14 250);
-  --chart-2: oklch(0.65 0.12 180);
-  --chart-3: oklch(0.60 0.10 270);
-  --chart-4: oklch(0.75 0.14 85);
-  --chart-5: oklch(0.68 0.16 20);
-  --sidebar: oklch(0.14 0.018 260 / 80%);
-  --sidebar-foreground: oklch(0.88 0.01 250);
-  --sidebar-primary: oklch(0.72 0.14 250);
-  --sidebar-primary-foreground: oklch(0.13 0.015 260);
-  --sidebar-accent: oklch(0.22 0.02 260);
-  --sidebar-accent-foreground: oklch(0.85 0.01 250);
-  --sidebar-border: oklch(0.26 0.015 260);
-  --sidebar-ring: oklch(0.72 0.14 250);
+  --background: oklch(0.11 0.018 255);
+  --foreground: oklch(0.93 0.006 250);
+  --card: oklch(0.15 0.016 255 / 80%);
+  --card-foreground: oklch(0.93 0.006 250);
+  --popover: oklch(0.14 0.016 255 / 90%);
+  --popover-foreground: oklch(0.93 0.006 250);
+  --primary: oklch(0.70 0.16 240);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.20 0.012 255);
+  --secondary-foreground: oklch(0.82 0.006 250);
+  --muted: oklch(0.18 0.010 255);
+  --muted-foreground: oklch(0.55 0.012 250);
+  --accent: oklch(0.20 0.018 255);
+  --accent-foreground: oklch(0.82 0.006 250);
+  --destructive: oklch(0.58 0.22 25);
+  --border: oklch(0.25 0.012 255);
+  --input: oklch(0.22 0.012 255);
+  --ring: oklch(0.70 0.16 240);
+  --chart-1: oklch(0.70 0.16 240);
+  --chart-2: oklch(0.62 0.14 170);
+  --chart-3: oklch(0.58 0.12 270);
+  --chart-4: oklch(0.72 0.16 85);
+  --chart-5: oklch(0.65 0.18 20);
+  --sidebar: oklch(0.12 0.020 255);
+  --sidebar-foreground: oklch(0.85 0.006 250);
+  --sidebar-primary: oklch(0.70 0.16 240);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.18 0.020 255);
+  --sidebar-accent-foreground: oklch(0.82 0.006 250);
+  --sidebar-border: oklch(0.22 0.012 255);
+  --sidebar-ring: oklch(0.70 0.16 240);
 }
 
 @layer base {
@@ -83,7 +83,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   button:not([disabled]),
   [role="button"]:not([disabled]) {
@@ -93,46 +94,113 @@
 
 /* ─── Glassmorphism Utility Classes ────────────────────── */
 .glass {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.035);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.055);
   box-shadow:
-    0 4px 30px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.055);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-subtle {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.025);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
 }
 
 .glass-hover:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.065);
+  border-color: rgba(255, 255, 255, 0.09);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Input Styles ─────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  border-radius: 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  outline: none;
+  transition: all 0.15s ease;
+}
+.input-field::placeholder {
+  color: var(--muted-foreground);
+}
+.input-field:focus {
+  border-color: oklch(0.70 0.16 240 / 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 0 3px oklch(0.70 0.16 240 / 0.08);
+}
+
+/* ─── Sidebar Styles ───────────────────────────────────── */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--sidebar-foreground);
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+.sidebar-link:hover {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+.sidebar-link.active {
+  background: oklch(0.70 0.16 240 / 0.12);
+  color: var(--primary);
+  font-weight: 600;
+}
+.sidebar-link.active svg {
+  color: var(--primary);
+}
+
+.sidebar-group-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  padding: 0.5rem 0.75rem 0.25rem;
 }
 
 /* ─── Background Pattern ───────────────────────────────── */
 .bg-dots {
   background-image: radial-gradient(
     circle,
-    rgba(100, 140, 240, 0.06) 1px,
+    rgba(100, 140, 240, 0.04) 1px,
     transparent 1px
   );
   background-size: 24px 24px;
@@ -140,24 +208,143 @@
 
 .bg-gradient-mesh {
   background:
-    radial-gradient(ellipse at 20% 15%, rgba(60, 100, 220, 0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 10%, rgba(100, 60, 200, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 85%, rgba(40, 160, 140, 0.06) 0%, transparent 50%),
-    oklch(0.13 0.015 260);
+    radial-gradient(ellipse at 15% 10%, rgba(60, 100, 220, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 8%, rgba(100, 60, 200, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgba(40, 160, 140, 0.04) 0%, transparent 50%),
+    oklch(0.11 0.018 255);
 }
 
 /* ─── Scrollbar ────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.07);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ─── Page Transitions ─────────────────────────────────── */
+.page-enter {
+  animation: pageIn 0.2s ease-out;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Stat Card Hover ──────────────────────────────────── */
+.stat-card {
+  transition: all 0.2s ease;
+}
+.stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* ─── Table Styles ─────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table thead th {
+  padding: 0.75rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.data-table tbody td {
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* ─── Badge Styles ─────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.badge-primary {
+  background: oklch(0.70 0.16 240 / 0.12);
+  color: var(--primary);
+}
+.badge-success {
+  background: oklch(0.62 0.14 170 / 0.12);
+  color: oklch(0.62 0.14 170);
+}
+.badge-warning {
+  background: oklch(0.72 0.16 85 / 0.12);
+  color: oklch(0.72 0.16 85);
+}
+.badge-danger {
+  background: oklch(0.58 0.22 25 / 0.12);
+  color: oklch(0.58 0.22 25);
+}
+.badge-info {
+  background: oklch(0.65 0.12 200 / 0.12);
+  color: oklch(0.65 0.12 200);
+}
+.badge-neutral {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted-foreground);
+}
+
+/* ─── Mobile Touch Targets ─────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  .data-table thead th {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.625rem;
+  }
+  .data-table tbody td {
+    padding: 0.625rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ─── Print Styles ─────────────────────────────────────── */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+    color: black;
+  }
 }

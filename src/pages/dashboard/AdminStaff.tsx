@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { Loader2, UserPlus } from "lucide-react";
-import { Field, inputCls } from "@/components/dashboard/Shared";
+import { Loader2, UserPlus, X } from "lucide-react";
+import { Field, PageHeader, StatCard, EmptyState, LoadingState } from "@/components/dashboard/Shared";
 
 export default function AdminStaff() {
   const allUsers = useQuery(api.users.listAll);
@@ -18,7 +18,11 @@ export default function AdminStaff() {
     e.preventDefault();
     setCreating(true);
     try {
-      await createUser({ name: form.name, email: form.email, role: form.role as never, department: form.department || undefined, specialization: form.specialization || undefined, phone: form.phone || undefined });
+      await createUser({
+        name: form.name, email: form.email, role: form.role as never,
+        department: form.department || undefined, specialization: form.specialization || undefined,
+        phone: form.phone || undefined,
+      });
       toast.success(`${form.name} added to staff.`);
       setForm({ name: "", email: "", role: "doctor", department: "", specialization: "", phone: "" });
       setShowForm(false);
@@ -27,61 +31,139 @@ export default function AdminStaff() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 lg:p-8">
-      <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-foreground">Staff Management</h1><p className="mt-1 text-sm text-muted-foreground">Create accounts, assign roles, manage access</p></div>
-        <button onClick={() => setShowForm(!showForm)} className="glass glass-strong flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/20"><UserPlus className="size-4" /> Add Staff</button>
-      </div>
+    <div className="p-4 md:p-6 lg:p-8">
+      <PageHeader
+        title="Staff Management"
+        description="Create accounts, assign roles, manage access"
+        action={
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30"
+          >
+            <UserPlus className="size-4" /> Add Staff
+          </button>
+        }
+      />
+
+      {/* ─── Stats ───────────────────────────────────── */}
       {userStats && (
-        <div className="grid grid-cols-3 gap-4 mt-6">
-          {[{ label: "Doctors", value: userStats.doctors }, { label: "Pharmacists", value: userStats.pharmacists }, { label: "Lab Technicians", value: userStats.labTechs }].map((s) => (
-            <div key={s.label} className="glass glass-strong rounded-xl p-4 flex items-center justify-between"><p className="text-xs text-muted-foreground font-medium">{s.label}</p><p className="text-xl font-bold text-foreground">{s.value}</p></div>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 mt-6">
+          <StatCard label="Doctors" value={userStats.doctors} icon={UserPlus} color="text-blue-400" bgColor="bg-blue-400/10" />
+          <StatCard label="Nurses" value={userStats.nurses} icon={UserPlus} color="text-emerald-400" bgColor="bg-emerald-400/10" />
+          <StatCard label="Total Staff" value={userStats.total} icon={UserPlus} color="text-primary" bgColor="bg-primary/10" />
         </div>
       )}
+
+      {/* ─── Create Form ─────────────────────────────── */}
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-            <form onSubmit={handleCreate} className="glass glass-strong mt-6 rounded-xl p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">New Staff Member</h3>
+            <form onSubmit={handleCreate} className="glass-card mt-6 p-5 md:p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground">New Staff Member</h3>
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5">
+                  <X className="size-4" />
+                </button>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Full Name" required><input required className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Doe" /></Field>
-                <Field label="Email" required><input required type="email" className={inputCls} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="john@hospital.com" /></Field>
+                <Field label="Full Name" required>
+                  <input required className="input-field" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Full name" />
+                </Field>
+                <Field label="Email" required>
+                  <input required type="email" className="input-field" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@hospital.com" />
+                </Field>
                 <Field label="Role" required>
-                  <select required className={inputCls} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                    <option value="doctor">Doctor</option><option value="nurse">Nurse</option><option value="pharmacist">Pharmacist</option>
-                    <option value="lab_technician">Lab Technician</option><option value="receptionist">Receptionist</option><option value="admin">Admin</option>
+                  <select required className="input-field" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                    <option value="doctor">Doctor</option>
+                    <option value="nurse">Nurse</option>
+                    <option value="pharmacist">Pharmacist</option>
+                    <option value="lab_technician">Lab Technician</option>
+                    <option value="receptionist">Receptionist</option>
+                    <option value="admin">Admin</option>
                   </select>
                 </Field>
-                <Field label="Department"><input className={inputCls} value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder="Cardiology" /></Field>
+                <Field label="Department">
+                  <input className="input-field" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder="e.g. Cardiology" />
+                </Field>
               </div>
-              <div className="flex gap-2 mt-4">
-                <button type="submit" disabled={creating} className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-all hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60">{creating ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} Create Account</button>
-                <button type="button" onClick={() => setShowForm(false)} className="rounded-xl px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+              <div className="flex gap-3 mt-5">
+                <button type="submit" disabled={creating}
+                  className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30 disabled:opacity-60">
+                  {creating ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />} Create Account
+                </button>
+                <button type="button" onClick={() => setShowForm(false)} className="rounded-xl px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Cancel
+                </button>
               </div>
             </form>
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="glass glass-strong mt-6 overflow-hidden rounded-xl">
-        <table className="w-full">
-          <thead><tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <th className="px-6 py-4">Name</th><th className="px-6 py-4">Email</th><th className="px-6 py-4">Role</th><th className="px-6 py-4">Department</th>
-          </tr></thead>
-          <tbody>
-            {!allUsers ? <tr><td colSpan={4} className="px-6 py-12 text-center text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin inline mr-2" />Loading...</td></tr>
-            : allUsers.length === 0 ? <tr><td colSpan={4} className="px-6 py-12 text-center text-sm text-muted-foreground">No staff found.</td></tr>
-            : allUsers.map((u) => (
-              <tr key={u._id} className="border-b border-white/5 last:border-0 hover:bg-white/5">
-                <td className="px-6 py-3 text-sm font-medium text-foreground">{u.name || "\u2014"}</td>
-                <td className="px-6 py-3 text-xs text-muted-foreground font-mono">{u.email || "\u2014"}</td>
-                <td className="px-6 py-3"><span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary capitalize">{u.role?.replace("_", " ") || "\u2014"}</span></td>
-                <td className="px-6 py-3 text-xs text-muted-foreground">{u.department || "\u2014"}</td>
+
+      {/* ─── Staff Table ─────────────────────────────── */}
+      <div className="glass-card mt-6 overflow-hidden">
+        {/* Desktop */}
+        <div className="hidden md:block">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Department</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {!allUsers ? (
+                <tr><td colSpan={4}><LoadingState /></td></tr>
+              ) : allUsers.length === 0 ? (
+                <tr><td colSpan={4}>
+                  <EmptyState
+                    icon={UserPlus}
+                    title="No staff members"
+                    description="Add your first staff member to get started."
+                  />
+                </td></tr>
+              ) : allUsers.map((u) => (
+                <tr key={u._id}>
+                  <td className="font-medium text-foreground">{u.name || "—"}</td>
+                  <td className="text-xs text-muted-foreground font-mono">{u.email || "—"}</td>
+                  <td><span className="badge badge-primary capitalize">{u.role?.replace("_", " ") || "—"}</span></td>
+                  <td className="text-xs text-muted-foreground capitalize">{u.department || "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile */}
+        <div className="md:hidden">
+          {!allUsers ? (
+            <LoadingState />
+          ) : allUsers.length === 0 ? (
+            <EmptyState
+              icon={UserPlus}
+              title="No staff members"
+              description="Add your first staff member to get started."
+            />
+          ) : (
+            <div className="divide-y divide-white/[0.04]">
+              {allUsers.map((u) => (
+                <div key={u._id} className="flex items-center gap-3 p-4">
+                  <div className="flex size-9 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
+                    {u.name?.[0]?.toUpperCase() || "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{u.name || "—"}</p>
+                    <p className="text-xs text-muted-foreground">{u.email || "—"}</p>
+                  </div>
+                  <span className="badge badge-primary capitalize shrink-0">{u.role?.replace("_", " ") || "—"}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
