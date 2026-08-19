@@ -1,7 +1,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { CheckCircle2, CreditCard, Eye, Users } from "lucide-react";
+import { CheckCircle2, CreditCard, Eye, UserPlus, Users } from "lucide-react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { StatusBadge, PageHeader, EmptyState, LoadingState } from "@/components/dashboard/Shared";
 import { useNavigate } from "react-router";
@@ -16,6 +16,12 @@ export default function ReceptionistQueue() {
       <PageHeader
         title="Today's Queue"
         description="Manage patient flow — confirm payment and send to doctor"
+        action={
+          <button onClick={() => navigate("/dashboard/register")}
+            className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30">
+            <UserPlus className="size-4" /> Register Patient
+          </button>
+        }
       />
 
       <div className="glass-card mt-6 overflow-hidden">
