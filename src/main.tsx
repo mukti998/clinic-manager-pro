@@ -6,28 +6,28 @@ import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import React, { StrictMode, useEffect, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes, useLocation, Outlet } from "react-router";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 
-// ─── Lazy-loaded pages ───────────────────────────────────
-const Landing = lazy(() => import("./pages/Landing.tsx"));
-const AuthPage = lazy(() => import("./pages/Auth.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
-const DashboardLayout = lazy(() => import("./components/dashboard/DashboardLayout.tsx"));
-const HomeView = lazy(() => import("./pages/dashboard/HomeView.tsx"));
-const RegisterPatient = lazy(() => import("./pages/dashboard/RegisterPatient.tsx"));
-const ReceptionistQueue = lazy(() => import("./pages/dashboard/ReceptionistQueue.tsx"));
-const VisitDetail = lazy(() => import("./pages/dashboard/VisitDetail.tsx"));
-const CheckoutView = lazy(() => import("./pages/dashboard/CheckoutView.tsx"));
-const DoctorQueue = lazy(() => import("./pages/dashboard/DoctorQueue.tsx"));
-const DoctorConsult = lazy(() => import("./pages/dashboard/DoctorConsult.tsx"));
-const LabQueueView = lazy(() => import("./pages/dashboard/LabQueueView.tsx"));
-const PharmacyQueueView = lazy(() => import("./pages/dashboard/PharmacyQueueView.tsx"));
-const NurseAssignments = lazy(() => import("./pages/dashboard/NurseAssignments.tsx"));
-const VitalsEntry = lazy(() => import("./pages/dashboard/VitalsEntry.tsx"));
-const PatientListView = lazy(() => import("./pages/dashboard/PatientListView.tsx"));
-const AdminFinancial = lazy(() => import("./pages/dashboard/AdminFinancial.tsx"));
-const AdminStaff = lazy(() => import("./pages/dashboard/AdminStaff.tsx"));
+// Eager imports for reliability — avoids lazy-load chunk failures in production
+import Landing from "./pages/Landing.tsx";
+import AuthPage from "./pages/Auth.tsx";
+import NotFound from "./pages/NotFound.tsx";
+import DashboardLayout from "./components/dashboard/DashboardLayout.tsx";
+import HomeView from "./pages/dashboard/HomeView.tsx";
+import RegisterPatient from "./pages/dashboard/RegisterPatient.tsx";
+import ReceptionistQueue from "./pages/dashboard/ReceptionistQueue.tsx";
+import VisitDetail from "./pages/dashboard/VisitDetail.tsx";
+import CheckoutView from "./pages/dashboard/CheckoutView.tsx";
+import DoctorQueue from "./pages/dashboard/DoctorQueue.tsx";
+import DoctorConsult from "./pages/dashboard/DoctorConsult.tsx";
+import LabQueueView from "./pages/dashboard/LabQueueView.tsx";
+import PharmacyQueueView from "./pages/dashboard/PharmacyQueueView.tsx";
+import NurseAssignments from "./pages/dashboard/NurseAssignments.tsx";
+import VitalsEntry from "./pages/dashboard/VitalsEntry.tsx";
+import PatientListView from "./pages/dashboard/PatientListView.tsx";
+import AdminFinancial from "./pages/dashboard/AdminFinancial.tsx";
+import AdminStaff from "./pages/dashboard/AdminStaff.tsx";
 
 function RouteLoading() {
   return (
