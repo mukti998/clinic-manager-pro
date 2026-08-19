@@ -139,28 +139,23 @@ createRoot(document.getElementById("root")!).render(
               />
 
               {/* Dashboard — protected nested routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <RequireAuth>
-                    <DashboardLayout />
-                  </RequireAuth>
-                }
-              >
-                <Route index element={<HomeView />} />
-                <Route path="register" element={<RegisterPatient />} />
-                <Route path="queue" element={<ReceptionistQueue />} />
-                <Route path="queue/:visitId" element={<VisitDetail />} />
-                <Route path="checkout" element={<CheckoutView />} />
-                <Route path="doctor-queue" element={<DoctorQueue />} />
-                <Route path="doctor-queue/:visitId" element={<DoctorConsult />} />
-                <Route path="lab-queue" element={<LabQueueView />} />
-                <Route path="pharmacy-queue" element={<PharmacyQueueView />} />
-                <Route path="nurse-assignments" element={<NurseAssignments />} />
-                <Route path="vitals" element={<VitalsEntry />} />
-                <Route path="patients" element={<PatientListView />} />
-                <Route path="admin-reports" element={<AdminFinancial />} />
-                <Route path="admin-staff" element={<AdminStaff />} />
+              <Route path="/dashboard" element={<RequireAuth />}>
+                <Route element={<DashboardLayout />}>
+                  <Route index element={<HomeView />} />
+                  <Route path="register" element={<RegisterPatient />} />
+                  <Route path="queue" element={<ReceptionistQueue />} />
+                  <Route path="queue/:visitId" element={<VisitDetail />} />
+                  <Route path="checkout" element={<CheckoutView />} />
+                  <Route path="doctor-queue" element={<DoctorQueue />} />
+                  <Route path="doctor-queue/:visitId" element={<DoctorConsult />} />
+                  <Route path="lab-queue" element={<LabQueueView />} />
+                  <Route path="pharmacy-queue" element={<PharmacyQueueView />} />
+                  <Route path="nurse-assignments" element={<NurseAssignments />} />
+                  <Route path="vitals" element={<VitalsEntry />} />
+                  <Route path="patients" element={<PatientListView />} />
+                  <Route path="admin-reports" element={<AdminFinancial />} />
+                  <Route path="admin-staff" element={<AdminStaff />} />
+                </Route>
               </Route>
 
               <Route path="*" element={<NotFound />} />

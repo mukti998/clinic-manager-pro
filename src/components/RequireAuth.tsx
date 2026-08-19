@@ -1,9 +1,8 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
-import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
 
-export function RequireAuth({ children }: { children: ReactNode }) {
+export function RequireAuth() {
   const { isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
 
@@ -25,5 +24,5 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     );
   }
 
-  return children;
+  return <Outlet />;
 }
