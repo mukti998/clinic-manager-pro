@@ -83,12 +83,6 @@ export default defineConfig({
       'react-dom',
       'react-dom/client',
       'react-router',
-      'convex',
-      'convex/react',
-      'convex/browser',
-      '@convex-dev/auth',
-      '@convex-dev/auth/react',
-      '@convex-dev/auth/providers/Email',
       'framer-motion',
     ],
   },
@@ -97,9 +91,7 @@ export default defineConfig({
     // Bind to all interfaces so WebContainer's server-ready event fires.
     host: true,
     port: 5173,
-    // Keep HMR on, but disable full-screen error overlay
-    hmr: {
-      overlay: false,
-    },
+    // HMR must remain disabled for Freebuff platform compatibility.
+    hmr: false,
   },
 });

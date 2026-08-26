@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { Suspense, lazy } from "react";
 import "./index.css";
-import { ConvexSafeBoundary } from "@/components/ConvexSafeBoundary";
 
 import type { ReactNode } from "react";
 import { Component } from "react";
@@ -53,12 +52,43 @@ function Loading() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// Lazy-loaded pages — NO top-level Convex imports in any of these
+// Lazy-loaded pages
 // ═══════════════════════════════════════════════════════════
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+
+// Lazy RequireAuth
+const RequireAuth = lazy(() =>
+  import("@/components/RequireAuth").then((m) => ({ default: m.RequireAuth }))
+);
+
+// ═══════════════════════════════════════════════════════════
+// Safe boundary for dashboard (catches Convex-not-ready errors)
+// ═══════════════════════════════════════════════════════════
+interface CBState { hasError: boolean }
+class ConvexSafeBoundary extends Component<{ children: ReactNode }, CBState> {
+  state: CBState = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(e: Error) {
+    console.warn("[Rayan] Dashboard boundary caught:", e.message);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0d14", color: "#e0e0e0" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: 32, height: 32, border: "3px solid rgba(255,255,255,0.1)", borderTopColor: "#3b82f6", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
+            <p style={{ fontSize: 14, color: "#888" }}>Initializing system… Please wait.</p>
+            <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════
 // App Shell — the actual routing tree
@@ -72,11 +102,9 @@ function AppShell() {
         <Route path="/dashboard" element={
           <ConvexSafeBoundary>
             <Suspense fallback={<Loading />}>
-              <Suspense fallback={<Loading />}>
-                <RequireAuth>
-                  <Dashboard />
-                </RequireAuth>
-              </Suspense>
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
             </Suspense>
           </ConvexSafeBoundary>
         } />
@@ -86,14 +114,8 @@ function AppShell() {
   );
 }
 
-// Lazy RequireAuth
-const RequireAuth = lazy(() =>
-  import("@/components/RequireAuth").then((m) => ({ default: m.RequireAuth }))
-);
-
 // ═══════════════════════════════════════════════════════════
 // Phase 1: RENDER IMMEDIATELY (synchronous, no awaits)
-// This ensures the UI is visible within milliseconds.
 // ═══════════════════════════════════════════════════════════
 function renderSync() {
   createRoot(document.getElementById("root")!).render(
@@ -107,11 +129,9 @@ function renderSync() {
 
 // ═══════════════════════════════════════════════════════════
 // Phase 2: Set up Convex in background (after UI is visible)
-// If Convex fails, app still works in demo mode.
 // ═══════════════════════════════════════════════════════════
 async function setupConvexInBackground() {
   try {
-    // Try to load Convex — timeout after 5 seconds
     const result = await Promise.race([
       Promise.all([
         import("@convex-dev/auth/react"),
@@ -130,7 +150,6 @@ async function setupConvexInBackground() {
       return;
     }
 
-    // Initialize Convex hooks for use-auth.ts
     const { initConvexHooks } = await import("@/hooks/use-auth");
     initConvexHooks({
       useConvexAuth: convexMod.useConvexAuth,
@@ -138,12 +157,10 @@ async function setupConvexInBackground() {
       useAuthActions: authMod.useAuthActions,
     });
 
-    // Create client
     const url = import.meta.env.VITE_CONVEX_URL as string;
     const ConvexReactClient = convexMod.ConvexReactClient;
     const client = new ConvexReactClient(url);
 
-    // Re-render with ConvexAuthProvider
     const { ConvexAuthProvider } = authMod;
     createRoot(document.getElementById("root")!).render(
       <StrictMode>
@@ -166,7 +183,8 @@ async function setupConvexInBackground() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// BOOT: render immediately, then set up Convex async
+// BOOT
 // ═══════════════════════════════════════════════════════════
+console.log("[Rayan] Starting application...");
 renderSync();
 setupConvexInBackground();
