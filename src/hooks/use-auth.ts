@@ -4,6 +4,7 @@ import {
   getDemoUser,
   enableDemoMode,
 } from "@/lib/demo-data";
+import { api } from "@/convex/_generated/api";
 
 // ═══════════════════════════════════════════════════════════
 // CONVEX HOOKS — loaded dynamically only when Convex is available
@@ -58,9 +59,7 @@ export function useAuth() {
   }
 
   const convexAuth = _convexHooks.useConvexAuth();
-  const user = _convexHooks.useQuery(
-    "users.currentUser"
-  );
+  const user = _convexHooks.useQuery(api.users.currentUser);
   const authActions = _convexHooks.useAuthActions();
 
   const isLoading = convexAuth.isLoading || user === undefined;
