@@ -22,13 +22,15 @@ vi.mock("react-router", () => ({
   useNavigate: vi.fn(() => vi.fn()),
   Navigate: ({ to }: { to: string }) => <div data-testid="navigate" data-to={to} />,
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  useLocation: vi.fn(() => ({ pathname: "/dashboard" })),
+  useLocation: vi.fn(() => ({ pathname: "/dashboard", search: "" })),
   useSearchParams: vi.fn(() => [new URLSearchParams(), vi.fn()]),
   NavLink: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string | Function }) => (
     <a href={to} className={typeof className === "function" ? "sidebar-link active" : className}>
       {children}
     </a>
   ),
+  Route: () => null,
+  Routes: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Outlet: () => <div data-testid="outlet" />,
 }));
 
@@ -140,40 +142,39 @@ function filterDomProps(props: Record<string, unknown>) {
   return dom;
 }
 
-// Import the Sidebar component directly — it contains branding, nav, and user section
-import Sidebar from "@/components/dashboard/Sidebar";
+// Import the Dashboard which contains the inline Sidebar
+import Dashboard from "@/pages/Dashboard";
 
-describe("Sidebar", () => {
+describe("Dashboard Sidebar", () => {
   it("renders the sidebar branding", () => {
-    render(<Sidebar />);
+    render(<Dashboard />);
     expect(screen.getByText("Rayan")).toBeTruthy();
   });
 
   it("renders navigation items for doctor role", () => {
-    render(<Sidebar />);
+    render(<Dashboard />);
     expect(screen.getByText("Overview")).toBeTruthy();
     expect(screen.getByText("My Queue")).toBeTruthy();
     expect(screen.getByText("Patient Records")).toBeTruthy();
   });
 
   it("displays user name from auth", () => {
-    render(<Sidebar />);
-    expect(screen.getByText("Dr. Sarah Chen")).toBeTruthy();
+    render(<Dashboard />);
+    expect(screen.getAllByText("Dr. Sarah Chen").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("shows doctor role in sidebar", () => {
-    render(<Sidebar />);
+  it("shows doctor role badge", () => {
+    render(<Dashboard />);
     expect(screen.getAllByText("doctor").length).toBeGreaterThan(0);
   });
 
-  it("shows user role label", () => {
-    render(<Sidebar />);
-    // The sidebar shows the role or department name for the user
-    expect(screen.getByText("doctor")).toBeTruthy();
+  it("shows user role label in sidebar", () => {
+    render(<Dashboard />);
+    expect(screen.getByText("Doctor")).toBeTruthy();
   });
 
   it("renders sign out button", () => {
-    render(<Sidebar />);
+    render(<Dashboard />);
     expect(screen.getByTitle("Sign out")).toBeTruthy();
   });
 });
@@ -184,7 +185,6 @@ import HomeView from "@/pages/dashboard/HomeView";
 describe("HomeView", () => {
   it("shows greeting with user name", () => {
     render(<HomeView />);
-    // The greeting uses first name only, split across whitespace
     expect(screen.getByText(/Good day/)).toBeTruthy();
     expect(screen.getByText(/Dr\./)).toBeTruthy();
   });

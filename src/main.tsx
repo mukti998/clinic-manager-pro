@@ -16,19 +16,54 @@ import type { ReactNode } from "react";
 import { Component } from "react";
 
 // ─── Error Boundary ──────────────────────────────────────
-interface ErrorBoundaryState { hasError: boolean; error: Error | null }
-class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+class ErrorBoundary extends Component<
+  { children: ReactNode },
+  ErrorBoundaryState
+> {
   state: ErrorBoundaryState = { hasError: false, error: null };
-  static getDerivedStateFromError(error: Error) { return { hasError: true, error }; }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0d14", color: "#e0e0e0", fontFamily: "system-ui" }}>
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#0a0d14",
+            color: "#e0e0e0",
+            fontFamily: "system-ui",
+          }}
+        >
           <div style={{ textAlign: "center", maxWidth: 480, padding: 32 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Something went wrong</h1>
-            <p style={{ fontSize: 14, color: "#888", marginBottom: 24 }}>{this.state.error?.message || "An unexpected error occurred."}</p>
-            <button onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
-              style={{ padding: "10px 24px", borderRadius: 8, background: "#3b82f6", color: "#fff", border: "none", fontSize: 14, cursor: "pointer" }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
+              Something went wrong
+            </h1>
+            <p style={{ fontSize: 14, color: "#888", marginBottom: 24 }}>
+              {this.state.error?.message || "An unexpected error occurred."}
+            </p>
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              style={{
+                padding: "10px 24px",
+                borderRadius: 8,
+                background: "#3b82f6",
+                color: "#fff",
+                border: "none",
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
               Reload
             </button>
           </div>
@@ -45,25 +80,35 @@ function AppRoutes() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
-        <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route
+          path="/auth"
+          element={<AuthPage redirectAfterAuth="/dashboard" />}
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
 }
 
-// ─── Boot: Dynamic import avoids CJS require() crash ────
-// Vite/Rollup converts static `import { ConvexReactClient } from "convex/react"`
-// into a require() call in the browser bundle. Dynamic import keeps it as ESM.
+// ─── Boot ────────────────────────────────────────────────
+// Dynamic import of convex/react avoids CJS require() crash in the browser.
+// Vite/Rollup can convert static imports of CJS packages into require() calls.
 async function boot() {
   let convexClient: any;
 
   if (isConvexConfigured()) {
     try {
       const url = import.meta.env.VITE_CONVEX_URL as string;
-      const mod = await import("convex/react");
-      convexClient = new mod.ConvexReactClient(url);
+      const { ConvexReactClient } = await import("convex/react");
+      convexClient = new ConvexReactClient(url);
     } catch (err) {
       console.warn("Convex load failed, entering demo mode:", err);
       enableDemoMode();
@@ -74,6 +119,10 @@ async function boot() {
     convexClient = new DemoConvexClient();
   }
 
+  // ConvexAuthProvider wraps the entire app so useConvexAuth/useAuthActions
+  // work in both real and demo modes. The DemoConvexClient implements the
+  // full interface (address, setAuth, clearAuth, action) so the provider
+  // doesn't crash when it accesses client properties.
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <ErrorBoundary>
@@ -81,7 +130,7 @@ async function boot() {
           <AppRoutes />
         </ConvexAuthProvider>
       </ErrorBoundary>
-    </StrictMode>,
+    </StrictMode>
   );
 }
 

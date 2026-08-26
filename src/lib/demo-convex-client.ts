@@ -1,41 +1,74 @@
 import { getDemoQueryResult } from "./demo-query-resolver";
 
-// Extract function name from query reference without importing internal Convex code
+// Extract function name from query reference
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractQueryName(query: any): string {
   if (typeof query === "string") return query;
-  // Convex query refs have a _functionName property or we can look at the path
   if (query && typeof query === "object") {
-    // Try common Convex internal properties
     if (query._functionName) return query._functionName;
     if (query.name) return query.name;
     if (query.path) return query.path;
-    // Stringify to extract name — looks like "users.currentUser" etc
     const str = String(query);
-    // Remove "api." prefix and any quotes
     return str.replace(/^.*?api\./, "").replace(/['"]/g, "");
   }
   return String(query);
 }
 
 /**
- * A mock ConvexReactClient for demo mode.
- * Returns demo data for all queries instead of making real API calls.
+ * A mock ConvexReactClient for demo mode that implements the minimum
+ * interface required by ConvexAuthProvider and ConvexProviderWithAuth.
+ *
+ * This allows the full Convex provider chain to mount without crashing,
+ * while returning demo data instead of making real API calls.
  */
 export class DemoConvexClient {
+  address = "https://demo.convex.cloud";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  options: any = { verbose: false };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  logger: any = undefined;
+
+  // No-op auth methods required by ConvexProviderWithAuth
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  setAuth(_fetchAccessToken: any, _onAuthenticated: any, _onRefreshing: any) {
+    // In demo mode, report as authenticated after a tick
+    setTimeout(() => _onAuthenticated?.(true), 0);
+  }
+
+  clearAuth() {
+    // No-op in demo mode
+  }
+
+  setApiUrl(_url: string) {
+    // No-op in demo mode
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  action(_actionPath: string, _args?: any): Promise<any> {
+    return Promise.resolve({ success: true });
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   watchQuery(query: any, ...argsAndOptions: any[]) {
     const [args] = argsAndOptions;
     const queryName = extractQueryName(query);
     const demoResult = getDemoQueryResult(queryName, args);
 
+    // Track subscribers for manual updates
+    const subscribers = new Set<() => void>();
+    let currentResult = demoResult;
+
     return {
       onUpdate: (callback: () => void) => {
+        subscribers.add(callback);
         // Fire callback once asynchronously so useSubscription picks up the demo data
         const id = setTimeout(() => callback(), 0);
-        return () => clearTimeout(id);
+        return () => {
+          clearTimeout(id);
+          subscribers.delete(callback);
+        };
       },
-      localQueryResult: () => demoResult,
+      localQueryResult: () => currentResult,
       localQueryLogs: () => undefined,
       journal: () => undefined,
     };
@@ -51,7 +84,10 @@ export class DemoConvexClient {
   }
 
   connectionState() {
-    return { connectionStatus: "connected" as const, lastSentTouchEventTimestamp: Date.now() };
+    return {
+      connectionStatus: "connected" as const,
+      lastSentTouchEventTimestamp: Date.now(),
+    };
   }
 
   subscribeToConnectionState(_cb: () => void) {
