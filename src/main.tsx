@@ -1,16 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
+import { Suspense, lazy } from "react";
 import "./index.css";
-
-import Landing from "./pages/Landing.tsx";
-import AuthPage from "./pages/Auth.tsx";
-import NotFound from "./pages/NotFound.tsx";
-import Dashboard from "./pages/Dashboard.tsx";
-import { RequireAuth } from "@/components/RequireAuth";
-import { isConvexConfigured, enableDemoMode } from "@/lib/demo-data";
-import { DemoConvexClient } from "@/lib/demo-convex-client";
 
 import type { ReactNode } from "react";
 import { Component } from "react";
@@ -28,6 +20,9 @@ class ErrorBoundary extends Component<
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("[Rayan] ErrorBoundary:", error, info);
+  }
   render() {
     if (this.state.hasError) {
       return (
@@ -42,13 +37,38 @@ class ErrorBoundary extends Component<
             fontFamily: "system-ui",
           }}
         >
-          <div style={{ textAlign: "center", maxWidth: 480, padding: 32 }}>
+          <div style={{ textAlign: "center", maxWidth: 520, padding: 32 }}>
             <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
-              Something went wrong
+              Rayan — Something went wrong
             </h1>
-            <p style={{ fontSize: 14, color: "#888", marginBottom: 24 }}>
+            <p
+              style={{
+                fontSize: 14,
+                color: "#888",
+                marginBottom: 8,
+                fontFamily: "monospace",
+                wordBreak: "break-word",
+              }}
+            >
               {this.state.error?.message || "An unexpected error occurred."}
             </p>
+            {this.state.error?.stack && (
+              <pre
+                style={{
+                  fontSize: 11,
+                  color: "#666",
+                  marginBottom: 24,
+                  textAlign: "left",
+                  maxHeight: 200,
+                  overflow: "auto",
+                  background: "rgba(255,255,255,0.03)",
+                  padding: 12,
+                  borderRadius: 8,
+                }}
+              >
+                {this.state.error.stack}
+              </pre>
+            )}
             <button
               onClick={() => {
                 this.setState({ hasError: false, error: null });
@@ -74,22 +94,81 @@ class ErrorBoundary extends Component<
   }
 }
 
-// ─── App Routes ──────────────────────────────────────────
-function AppRoutes() {
+// ─── Loading Screen ──────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#0a0d14",
+        color: "#e0e0e0",
+        fontFamily: "system-ui",
+      }}
+    >
+      <div style={{ textAlign: "center" }}>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            border: "3px solid rgba(255,255,255,0.1)",
+            borderTopColor: "#3b82f6",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+            margin: "0 auto 16px",
+          }}
+        />
+        <p style={{ fontSize: 14, color: "#888" }}>Loading Rayan…</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lazy-loaded pages (safe — no Convex imports) ─────────
+const Landing = lazy(() => import("./pages/Landing.tsx"));
+const AuthPage = lazy(() => import("./pages/Auth.tsx"));
+const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+
+// Lazy RequireAuth — map named export to default
+const RequireAuth = lazy(() =>
+  import("@/components/RequireAuth").then((m) => ({
+    default: m.RequireAuth,
+  }))
+);
+
+// ─── App Shell ───────────────────────────────────────────
+function AppShell() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route
+          path="/"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <Landing />
+            </Suspense>
+          }
+        />
         <Route
           path="/auth"
-          element={<AuthPage redirectAfterAuth="/dashboard" />}
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <AuthPage redirectAfterAuth="/dashboard" />
+            </Suspense>
+          }
         />
         <Route
           path="/dashboard"
           element={
-            <RequireAuth>
-              <Dashboard />
-            </RequireAuth>
+            <Suspense fallback={<LoadingScreen />}>
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            </Suspense>
           }
         />
         <Route path="*" element={<NotFound />} />
@@ -98,40 +177,85 @@ function AppRoutes() {
   );
 }
 
-// ─── Boot ────────────────────────────────────────────────
-// Dynamic import of convex/react avoids CJS require() crash in the browser.
-// Vite/Rollup can convert static imports of CJS packages into require() calls.
-async function boot() {
-  let convexClient: any;
-
-  if (isConvexConfigured()) {
-    try {
-      const url = import.meta.env.VITE_CONVEX_URL as string;
-      const { ConvexReactClient } = await import("convex/react");
-      convexClient = new ConvexReactClient(url);
-    } catch (err) {
-      console.warn("Convex load failed, entering demo mode:", err);
-      enableDemoMode();
-      convexClient = new DemoConvexClient();
-    }
-  } else {
-    enableDemoMode();
-    convexClient = new DemoConvexClient();
-  }
-
-  // ConvexAuthProvider wraps the entire app so useConvexAuth/useAuthActions
-  // work in both real and demo modes. The DemoConvexClient implements the
-  // full interface (address, setAuth, clearAuth, action) so the provider
-  // doesn't crash when it accesses client properties.
+// ─── Render helper ───────────────────────────────────────
+function renderApp(Provider?: any, client?: any) {
+  const shell = <AppShell />;
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <ErrorBoundary>
-        <ConvexAuthProvider client={convexClient}>
-          <AppRoutes />
-        </ConvexAuthProvider>
+        {Provider ? <Provider client={client}>{shell}</Provider> : shell}
       </ErrorBoundary>
     </StrictMode>
   );
+}
+
+// ─── Boot ────────────────────────────────────────────────
+async function boot() {
+  // Step 1: Try to load Convex packages
+  let ConvexAuthProvider: any = null;
+  let ConvexReactClient: any = null;
+  let demoData: any = null;
+  let demoClient: any = null;
+
+  try {
+    [ConvexAuthProvider, ConvexReactClient, demoData, demoClient] =
+      await Promise.all([
+        import("@convex-dev/auth/react"),
+        import("convex/react"),
+        import("@/lib/demo-data"),
+        import("@/lib/demo-convex-client"),
+      ]);
+  } catch (err) {
+    console.warn("[Rayan] Convex packages failed to load:", err);
+  }
+
+  // Step 2: Set up demo data
+  const dataLib = demoData || (await import("@/lib/demo-data"));
+  const { isConvexConfigured, enableDemoMode } = dataLib;
+
+  if (!isConvexConfigured()) {
+    enableDemoMode();
+  }
+
+  // Step 3: Initialize Convex hooks if available
+  if (ConvexAuthProvider && ConvexReactClient) {
+    try {
+      const { initConvexHooks } = await import("@/hooks/use-auth");
+      const convexAuthMod = await import("@convex-dev/auth/react");
+      const convexReactMod = await import("convex/react");
+
+      initConvexHooks({
+        useConvexAuth: convexReactMod.useConvexAuth,
+        useQuery: convexReactMod.useQuery,
+        useAuthActions: convexAuthMod.useAuthActions,
+      });
+    } catch (err) {
+      console.warn("[Rayan] Convex hooks init failed:", err);
+    }
+  }
+
+  // Step 4: Create client (real or demo)
+  let convexClient: any = null;
+
+  if (isConvexConfigured() && ConvexReactClient) {
+    try {
+      const url = import.meta.env.VITE_CONVEX_URL as string;
+      const clientMod = ConvexReactClient.default || ConvexReactClient;
+      convexClient = new clientMod(url);
+    } catch (err) {
+      console.warn("[Rayan] Convex client failed:", err);
+      convexClient = null;
+    }
+  }
+
+  // Step 5: Render
+  if (convexClient && ConvexAuthProvider) {
+    const Provider = ConvexAuthProvider.default || ConvexAuthProvider;
+    renderApp(Provider, convexClient);
+  } else {
+    // No Convex — render without provider (pure demo mode)
+    renderApp();
+  }
 }
 
 boot();
